@@ -1,0 +1,62 @@
+# General Settings
+# -----------------
+# Main configuration file for the quant-mpc trading system
+
+app:
+  name: "quant-mpc"
+  version: "0.1.0"
+  mode: "paper"  # paper, live, backtest
+
+# Broker Configuration
+broker:
+  name: "ibkr"
+  host: "127.0.0.1"
+  port: 7497           # 7497=TWS paper, 7496=TWS live, 4001=Gateway paper, 4002=Gateway live
+  client_id: 1
+  timeout: 30          # Connection timeout in seconds
+  readonly: false      # If true, no orders will be submitted
+
+# Data Configuration
+data:
+  provider: "ibkr"     # ibkr, polygon
+  polygon_api_key: ""  # Set via environment variable POLYGON_API_KEY
+  
+  # Historical data settings
+  historical:
+    default_lookback_days: 365
+    options_lookback_days: 90
+
+# Target Instrument
+instrument:
+  symbol: "SPY"
+  exchange: "SMART"
+  currency: "USD"
+  sec_type: "STK"
+  
+  # Dividend yield (continuous, annualized)
+  # SPY typically pays ~1.0-1.5% annually
+  # Update this periodically or fetch from data source
+  # As of Dec 2025: ~1.06%
+  dividend_yield: 0.0106
+
+# Database
+database:
+  url: "sqlite:///data/state/trading.db"
+  echo: false          # Log SQL queries
+
+# Logging
+logging:
+  level: "INFO"        # DEBUG, INFO, WARNING, ERROR
+  format: "{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} | {message}"
+  file: "data/logs/trading.log"
+  rotation: "10 MB"
+  retention: "30 days"
+
+# Market Hours (Eastern Time)
+market:
+  timezone: "America/New_York"
+  regular_open: "09:30"
+  regular_close: "16:00"
+  extended_open: "04:00"
+  extended_close: "20:00"
+

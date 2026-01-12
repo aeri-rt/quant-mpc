@@ -1,0 +1,53 @@
+# Logging Configuration
+# ---------------------
+# Structured logging setup using loguru
+
+version: 1
+
+# Default format
+format: "{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} | {message}"
+
+# Log levels by module
+levels:
+  default: "INFO"
+  src.data: "INFO"
+  src.control: "DEBUG"       # More verbose for MPC debugging
+  src.execution: "INFO"
+  src.strategy: "INFO"
+  ib_insync: "WARNING"       # Quiet the broker library
+
+# File outputs
+files:
+  # Main trading log
+  - path: "data/logs/trading.log"
+    level: "INFO"
+    rotation: "10 MB"
+    retention: "30 days"
+    compression: "zip"
+    
+  # Debug log (everything)
+  - path: "data/logs/debug.log"
+    level: "DEBUG"
+    rotation: "50 MB"
+    retention: "7 days"
+    compression: "zip"
+    
+  # Error log (errors only)
+  - path: "data/logs/error.log"
+    level: "ERROR"
+    rotation: "10 MB"
+    retention: "90 days"
+    
+  # Trade log (trades only)
+  - path: "data/logs/trades.log"
+    level: "INFO"
+    filter: "trade"          # Only log messages with 'trade' tag
+    rotation: "10 MB"
+    retention: "365 days"
+
+# Console output
+console:
+  enabled: true
+  level: "INFO"
+  colorize: true
+
