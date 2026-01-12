@@ -28,22 +28,25 @@ Based on: Clinet, Perreton, Reydellet (2021) - "Optimal trading: a model predict
 
 ### Installation
 
+**macOS / Linux:**
 ```bash
-# Clone the repository
-git clone <repo-url>
+git clone https://github.com/aeri-rt/quant-mpc.git
 cd quant-mpc
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # or `venv\Scripts\activate` on Windows
-
-# Install dependencies
+python3 -m venv venv
+source venv/bin/activate
 pip install -e ".[dev]"
-
-# Copy environment template
-cp .env.example .env
-# Edit .env with your settings
 ```
+
+**Windows (PowerShell):**
+```powershell
+git clone https://github.com/aeri-rt/quant-mpc.git
+cd quant-mpc
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install -e ".[dev]"
+```
+
+See [docs/guides/setup.md](docs/guides/setup.md) for detailed setup instructions and troubleshooting.
 
 ### Configuration
 

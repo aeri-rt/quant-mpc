@@ -11,23 +11,64 @@ This guide walks through setting up the development environment for quant-mpc.
 
 ## Quick Setup
 
+### macOS / Linux
+
 ```bash
-# Navigate to project
-cd /path/to/quant-mpc
+# Clone repository
+git clone https://github.com/aeri-rt/quant-mpc.git
+cd quant-mpc
 
 # Create virtual environment
 python3 -m venv venv
 
 # Activate virtual environment
-source venv/bin/activate  # macOS/Linux
-# or: venv\Scripts\activate  # Windows
+source venv/bin/activate
 
 # Install dependencies
 pip install -e ".[dev]"
 
 # Verify installation
-python -c "import casadi; print(f'CasADi: {casadi.__version__}')"
-python -c "import do_mpc; print(f'do-mpc: {do_mpc.__version__}')"
+python scripts/verify_setup.py
+```
+
+### Windows (PowerShell)
+
+```powershell
+# Clone repository
+git clone https://github.com/aeri-rt/quant-mpc.git
+cd quant-mpc
+
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment
+.\venv\Scripts\Activate.ps1
+
+# Install dependencies
+pip install -e ".[dev]"
+
+# Verify installation
+python scripts/verify_setup.py
+```
+
+### Windows (Command Prompt)
+
+```cmd
+# Clone repository
+git clone https://github.com/aeri-rt/quant-mpc.git
+cd quant-mpc
+
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment
+venv\Scripts\activate.bat
+
+# Install dependencies
+pip install -e ".[dev]"
+
+# Verify installation
+python scripts/verify_setup.py
 ```
 
 ## Detailed Steps
@@ -36,20 +77,35 @@ python -c "import do_mpc; print(f'do-mpc: {do_mpc.__version__}')"
 
 Check your Python version:
 ```bash
-python3 --version
+python3 --version   # macOS/Linux
+python --version    # Windows
 ```
 
 Should be 3.11.x or 3.12.x. If not, install via:
 - **macOS:** `brew install python@3.11`
 - **Ubuntu:** `sudo apt install python3.11`
-- **Windows:** Download from python.org
+- **Windows:** Download from [python.org](https://www.python.org/downloads/) - **Check "Add Python to PATH"** during installation
 
 ### 2. Virtual Environment
 
 Create an isolated environment:
+
+**macOS/Linux:**
 ```bash
 python3 -m venv venv
 source venv/bin/activate
+```
+
+**Windows (PowerShell):**
+```powershell
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+```
+
+**Windows (Command Prompt):**
+```cmd
+python -m venv venv
+venv\Scripts\activate.bat
 ```
 
 Your prompt should now show `(venv)`.
@@ -126,12 +182,56 @@ pip install casadi --no-cache-dir
 pip install --upgrade ib_insync
 ```
 
+## Windows-Specific Issues
+
+### Issue: PowerShell execution policy blocks activation
+
+**Error:** `cannot be loaded because running scripts is disabled on this system`
+
+**Solution:** Open PowerShell as Administrator and run:
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+### Issue: Microsoft Visual C++ Build Tools required
+
+Some packages may require C++ compilation. If you see errors about `Microsoft Visual C++`:
+
+**Solution:** Install [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/):
+1. Download the installer
+2. Select "Desktop development with C++"
+3. Restart terminal after installation
+
+### Issue: Long path names on Windows
+
+**Error:** `FileNotFoundError` or path-related errors with long file paths
+
+**Solution:** Enable long paths in Windows:
+1. Open Registry Editor (regedit)
+2. Navigate to: `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem`
+3. Set `LongPathsEnabled` to `1`
+4. Restart your computer
+
+Or via PowerShell (as Administrator):
+```powershell
+New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
+```
+
+### Issue: Python not found on Windows
+
+**Solution:** Ensure Python is in your PATH:
+1. Reinstall Python from python.org
+2. Check "Add Python to PATH" during installation
+3. Or manually add `C:\Users\<username>\AppData\Local\Programs\Python\Python311\` to PATH
+
 ## IDE Setup
 
 ### VS Code / Cursor
 
 1. Install Python extension
-2. Select interpreter: `Cmd+Shift+P` → "Python: Select Interpreter" → choose `venv`
+2. Select interpreter: 
+   - macOS: `Cmd+Shift+P` → "Python: Select Interpreter" → choose `venv`
+   - Windows: `Ctrl+Shift+P` → "Python: Select Interpreter" → choose `venv`
 3. Install recommended extensions:
    - Python
    - Pylance
@@ -140,7 +240,9 @@ pip install --upgrade ib_insync
 ### PyCharm
 
 1. Open project folder
-2. Settings → Project → Python Interpreter → Add → Existing environment → select `venv/bin/python`
+2. Settings → Project → Python Interpreter → Add → Existing environment → select:
+   - macOS/Linux: `venv/bin/python`
+   - Windows: `venv\Scripts\python.exe`
 
 ## Next Steps
 
