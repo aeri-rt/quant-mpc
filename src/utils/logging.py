@@ -85,6 +85,17 @@ class TradeLog:
     price: float = 0.0
     order_type: str = ""
     
+    # Order tracking
+    status: str = ""  # SUBMITTED, FILLED, CANCELLED, REJECTED
+    order_id: str = ""
+    broker_order_id: Optional[int] = None
+    
+    # Fill details
+    filled_quantity: int = 0
+    avg_fill_price: float = 0.0
+    fill_price: float = 0.0
+    commission: float = 0.0
+    
     # Context
     delta_before: float = 0.0
     delta_after: float = 0.0
@@ -94,8 +105,9 @@ class TradeLog:
     slippage: float = 0.0
     latency_ms: float = 0.0
     
-    # Reason
+    # Reason/Error
     reason: str = ""
+    error: str = ""
     
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -303,28 +315,47 @@ def log_trade(
     symbol: str,
     side: str,
     quantity: float,
-    price: float,
     order_type: str = "MARKET",
+    price: float = 0.0,
+    status: str = "",
+    order_id: str = "",
+    broker_order_id: Optional[int] = None,
+    filled_quantity: int = 0,
+    avg_fill_price: float = 0.0,
+    fill_price: float = 0.0,
+    commission: float = 0.0,
     delta_before: float = 0.0,
     delta_after: float = 0.0,
     mpc_recommendation: float = 0.0,
     slippage: float = 0.0,
     latency_ms: float = 0.0,
     reason: str = "",
+    error: str = "",
 ) -> None:
     """
-    Log a trade execution with full context.
+    Log a trade/order event with full context.
     
     Example:
+        # Log order submission
         log_trade(
             symbol="SPY",
             side="SELL",
             quantity=100,
-            price=500.25,
-            delta_before=150,
-            delta_after=50,
-            mpc_recommendation=-100,
+            order_type="MARKET",
+            status="SUBMITTED",
+            order_id="abc123",
             reason="Delta hedge"
+        )
+        
+        # Log fill
+        log_trade(
+            symbol="SPY",
+            side="SELL",
+            quantity=100,
+            status="FILL",
+            order_id="abc123",
+            fill_price=500.25,
+            commission=0.50,
         )
     """
     if not _initialized:
@@ -337,19 +368,34 @@ def log_trade(
         quantity=quantity,
         price=price,
         order_type=order_type,
+        status=status,
+        order_id=order_id,
+        broker_order_id=broker_order_id,
+        filled_quantity=filled_quantity,
+        avg_fill_price=avg_fill_price,
+        fill_price=fill_price,
+        commission=commission,
         delta_before=delta_before,
         delta_after=delta_after,
         mpc_recommendation=mpc_recommendation,
         slippage=slippage,
         latency_ms=latency_ms,
         reason=reason,
+        error=error,
     )
     
     # Exclude 'component' from dict since we bind it separately
     log_data = {k: v for k, v in trade_log.to_dict().items() if k != 'component'}
-    logger.bind(component="trade", **log_data).info(
-        f"TRADE: {side} {quantity:.0f} {symbol} @ ${price:.2f}"
-    )
+    
+    # Format message based on status
+    if status == "FILL":
+        msg = f"FILL: {quantity:.0f} {symbol} @ ${fill_price:.2f}"
+    elif status:
+        msg = f"ORDER [{status}]: {side} {quantity:.0f} {symbol}"
+    else:
+        msg = f"TRADE: {side} {quantity:.0f} {symbol} @ ${price:.2f}"
+    
+    logger.bind(component="trade", **log_data).info(msg)
 
 
 def log_mpc_solve(

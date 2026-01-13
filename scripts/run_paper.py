@@ -42,7 +42,11 @@ from src.data import IBKRDataProvider, DataProviderConfig, OptionsChainManager
 from src.strategy import GammaScalpingStrategy, GammaScalpingConfig
 from src.models.greeks import OptionPosition, EquityPosition, PositionType
 from src.core.types import OptionType
+from src.execution import OrderManager
+from src.risk import RiskManager, RiskConfig
 from src.utils.logging import setup_logging, LogConfig, get_logger
+from src.utils.config import load_config, get_broker_config, get_strategy_config, get_risk_config
+from src.utils.metrics import MetricsTracker
 
 # Setup logging
 log_config = LogConfig(
@@ -92,6 +96,9 @@ class PaperTradingRunner:
         self._provider: Optional[IBKRDataProvider] = None
         self._chain_mgr: Optional[OptionsChainManager] = None
         self._strategy: Optional[GammaScalpingStrategy] = None
+        self._order_mgr: Optional[OrderManager] = None
+        self._risk_mgr: Optional[RiskManager] = None
+        self._metrics: Optional[MetricsTracker] = None
         
         # Current positions (for paper trading simulation)
         self._equity_position: int = 0
@@ -101,10 +108,18 @@ class PaperTradingRunner:
         """Initialize all components and connect to IBKR."""
         logger.info("Initializing paper trading runner...")
         
-        # Data provider
+        # Load configuration from YAML files
+        app_config = load_config()
+        broker_config = app_config.broker
+        strategy_config = app_config.strategy
+        risk_config_yaml = app_config.risk
+        
+        logger.info(f"Loaded config: mode={app_config.mode}, symbol={app_config.instrument.symbol}")
+        
+        # Data provider - use config values or CLI overrides
         config = DataProviderConfig(
-            port=self.port,
-            client_id=self.client_id,
+            port=self.port if self.port != 7497 else broker_config.port,
+            client_id=self.client_id if self.client_id != 10 else broker_config.client_id,
             use_delayed_data=True,  # Set False if you have market data subscription
         )
         self._provider = IBKRDataProvider(config)
@@ -125,6 +140,29 @@ class PaperTradingRunner:
         logger.info(f"Connecting to IBKR at port {self.port}...")
         await self._provider.connect()
         logger.info("✓ Connected to IBKR")
+        
+        # Initialize order manager with the IB connection
+        self._order_mgr = OrderManager(self._provider._ib)
+        logger.info("✓ Order manager initialized")
+        
+        # Initialize risk manager - use YAML config with CLI overrides
+        risk_config = RiskConfig(
+            max_equity_position=int(risk_config_yaml.max_delta),
+            max_single_trade=strategy_config.hedging.max_delta_exposure,
+            max_daily_loss=risk_config_yaml.max_loss_daily,
+            max_portfolio_delta=risk_config_yaml.max_delta,
+            max_portfolio_gamma=risk_config_yaml.max_gamma,
+            enforce_trading_hours=False,  # Allow paper trading anytime
+        )
+        self._risk_mgr = RiskManager(risk_config)
+        
+        # Register kill switch callback
+        self._risk_mgr.on_kill_switch(self.stop)
+        logger.info("✓ Risk manager initialized")
+        
+        # Initialize metrics tracker
+        self._metrics = MetricsTracker()
+        logger.info("✓ Metrics tracker initialized")
         
         # Fetch initial data
         await self._fetch_market_data()
@@ -221,6 +259,14 @@ class PaperTradingRunner:
                 # Get hedge recommendation
                 rec = self._strategy.update(spot_price=spot)
                 
+                # Record Greeks snapshot
+                self._metrics.record_greeks(
+                    spot_price=spot,
+                    delta=rec.portfolio_delta,
+                    gamma=rec.portfolio_gamma,
+                    equity_position=self._equity_position,
+                )
+                
                 # Log status
                 logger.info(
                     f"[{iteration}] S=${spot:.2f} | "
@@ -232,17 +278,77 @@ class PaperTradingRunner:
                 
                 # Execute trade if not dry run
                 if rec.trade_quantity != 0:
+                    # Validate through risk manager
+                    risk_check = self._risk_mgr.validate_trade(
+                        symbol="SPY",
+                        quantity=rec.trade_quantity,
+                        current_position=self._equity_position,
+                        current_delta=rec.net_delta,
+                        current_gamma=rec.portfolio_gamma,
+                    )
+                    
+                    if not risk_check.passed:
+                        logger.warning(
+                            f"[RISK BLOCKED] {risk_check.result.value}: {risk_check.message}",
+                            original_qty=rec.trade_quantity,
+                        )
+                        continue
+                    
+                    # Use adjusted quantity from risk manager
+                    trade_qty = risk_check.adjusted_quantity
+                    
                     if self.dry_run:
-                        logger.info(f"[DRY RUN] Would execute: {rec.trade_direction} {abs(rec.trade_quantity):.0f} SPY")
+                        logger.info(f"[DRY RUN] Would execute: {rec.trade_direction} {abs(trade_qty):.0f} SPY")
                         # Simulate execution
-                        self._equity_position += int(rec.trade_quantity)
-                        self._strategy.execute_hedge(rec.trade_quantity)
+                        self._equity_position += int(trade_qty)
+                        self._strategy.execute_hedge(trade_qty)
+                        
+                        # Record trade in metrics
+                        self._metrics.record_trade(
+                            symbol="SPY",
+                            side=rec.trade_direction,
+                            quantity=abs(int(trade_qty)),
+                            price=spot,
+                            expected_price=spot,  # No slippage in dry run
+                        )
                     else:
-                        # TODO: Actual order execution via broker
-                        logger.warning("Live execution not implemented yet")
-                        # For now, simulate
-                        self._equity_position += int(rec.trade_quantity)
-                        self._strategy.execute_hedge(rec.trade_quantity)
+                        # Execute via OrderManager
+                        try:
+                            order = await self._order_mgr.submit_hedge_order(
+                                symbol="SPY",
+                                quantity=trade_qty,
+                                use_limit=False,  # Market orders for simplicity
+                            )
+                            
+                            # Wait briefly for fill (paper trading fills instantly)
+                            await asyncio.sleep(0.5)
+                            
+                            if order.status.value == "FILLED":
+                                self._equity_position = int(self._equity_position + order.filled_quantity)
+                                self._strategy.execute_hedge(order.filled_quantity)
+                                logger.info(
+                                    f"✓ Order filled: {order.filled_quantity} @ ${order.avg_fill_price:.2f}"
+                                )
+                                
+                                # Record trade in metrics
+                                self._metrics.record_trade(
+                                    symbol="SPY",
+                                    side=rec.trade_direction,
+                                    quantity=abs(order.filled_quantity),
+                                    price=order.avg_fill_price,
+                                    expected_price=spot,
+                                )
+                            else:
+                                logger.warning(f"Order status: {order.status.value}")
+                                # Still update position for paper trading simulation
+                                self._equity_position += int(trade_qty)
+                                self._strategy.execute_hedge(trade_qty)
+                                
+                        except Exception as e:
+                            logger.error(f"Order execution failed: {e}")
+                            # Fallback to simulation
+                            self._equity_position += int(trade_qty)
+                            self._strategy.execute_hedge(trade_qty)
                 
                 # Wait for next iteration
                 await asyncio.sleep(self.interval)
@@ -265,6 +371,10 @@ class PaperTradingRunner:
         """Clean up resources."""
         logger.info("Shutting down...")
         
+        # Cancel any open orders
+        if self._order_mgr:
+            await self._order_mgr.cancel_all_orders()
+        
         if self._provider:
             await self._provider.disconnect()
         
@@ -278,6 +388,31 @@ class PaperTradingRunner:
             print(f"Final equity position: {state['equity_position']} shares")
             print(f"Final net delta: {state['net_delta']:.1f}")
             print(f"Total ticks processed: {state['tick_count']}")
+        
+        if self._order_mgr:
+            stats = self._order_mgr.get_session_stats()
+            print(f"\nOrder Statistics:")
+            print(f"  Total orders: {stats['total_orders']}")
+            print(f"  Filled: {stats['filled_orders']}")
+            print(f"  Shares bought: {stats['total_bought']}")
+            print(f"  Shares sold: {stats['total_sold']}")
+            print(f"  Total commission: ${stats['total_commission']:.2f}")
+        
+        if self._risk_mgr:
+            risk_status = self._risk_mgr.get_status()
+            print(f"\nRisk Status:")
+            print(f"  Kill switch: {'ACTIVE' if risk_status['kill_switch_active'] else 'inactive'}")
+            print(f"  Daily P&L: ${risk_status['daily_realized_pnl']:.2f}")
+            print(f"  Trades last hour: {risk_status['trades_last_hour']}")
+        
+        # Log and save session metrics
+        if self._metrics:
+            self._metrics.log_session_summary()
+            try:
+                saved_path = self._metrics.save_to_file()
+                print(f"\nSession data saved to: {saved_path}")
+            except Exception as e:
+                logger.warning(f"Could not save session data: {e}")
         print()
 
 
