@@ -11,13 +11,17 @@ See docs/design/mpc-controller-design-v1-revised.md for full specification.
 """
 
 from dataclasses import dataclass
-from typing import Optional, Tuple
+from typing import Optional, Tuple, TYPE_CHECKING
 import time
 import numpy as np
 import casadi as ca
 import do_mpc
 
 from src.utils.logging import get_logger, log_mpc_solve, Timer
+from src.utils.helpers import TRADING_MINUTES_PER_YEAR
+
+if TYPE_CHECKING:
+    from src.utils.config import MPCParams
 
 # Get component-specific logger
 logger = get_logger("mpc")
@@ -28,7 +32,7 @@ class MPCConfig:
     """Configuration for the MPC controller."""
     
     # Timing
-    dt: float = 1.0 / (252 * 6.5 * 60)  # 1 minute in years
+    dt: float = 1.0 / TRADING_MINUTES_PER_YEAR  # 1 minute in years
     n_horizon: int = 20  # Prediction horizon steps
     
     # Constraints
@@ -49,6 +53,35 @@ class MPCConfig:
     
     # Volatility scaling
     sigma_base: float = 0.15  # Baseline volatility for scaling
+    
+    @classmethod
+    def from_yaml_config(cls, mpc_params: "MPCParams") -> "MPCConfig":
+        """
+        Create MPCConfig from YAML-loaded MPCParams.
+        
+        This connects the YAML configuration to the MPC controller.
+        
+        Args:
+            mpc_params: MPCParams loaded from config/mpc_params.yaml
+            
+        Returns:
+            MPCConfig instance with values from YAML
+        """
+        return cls(
+            dt=mpc_params.dt,  # Already converted to years in MPCParams
+            n_horizon=mpc_params.horizon,
+            q_max=float(mpc_params.constraints.max_position),
+            u_max=float(mpc_params.constraints.max_trade_rate),
+            direction_threshold=10.0,  # Keep default for now
+            w_delta=mpc_params.weights.delta_deviation,
+            w_exec=mpc_params.weights.execution_cost,
+            c_quad=mpc_params.costs.c_quad,
+            c_lin=mpc_params.costs.c_lin,
+            w_rate=mpc_params.weights.delta_rate,
+            w_terminal=mpc_params.weights.terminal_delta,
+            kappa=mpc_params.kappa_init,
+            sigma_base=0.15,  # Not in YAML yet, use default
+        )
 
 
 @dataclass
@@ -229,18 +262,34 @@ class DeltaHedgeMPC:
         mpc.bounds['lower', '_x', 'q'] = -self.config.q_max
         mpc.bounds['upper', '_x', 'q'] = self.config.q_max
         
-        # Algebraic bounds: z_abs >= 0
+        # =======================================================================
+        # z_abs Auxiliary Variable Formulation
+        # =======================================================================
+        # 
+        # To handle the |u| term in the cost function (which is non-smooth),
+        # we use the auxiliary variable z_abs with constraints:
+        #   z_abs >= |u|  ⟺  z_abs >= u AND z_abs >= -u
+        #
+        # This reformulates the non-smooth |u| as a smooth LP in (z_abs, u).
+        # The optimizer will minimize z_abs to the smallest value satisfying
+        # the constraints, which is exactly |u|.
+        #
+        # Constraint formulation for do-mpc:
+        #   g(x,u,z) <= ub, with lb <= g(x,u,z) handled via lower bound
+        #
+        # We need:
+        #   z_abs - u >= 0  → constraint: u - z_abs <= 0
+        #   z_abs + u >= 0  → constraint: -u - z_abs <= 0
+        # =======================================================================
+        
+        # Lower bound: z_abs >= 0 (auxiliary must be non-negative)
         mpc.bounds['lower', '_z', 'z_abs'] = 0
         
-        # Nonlinear constraints for z_abs >= |u|
-        # z_abs >= u  →  z_abs - u >= 0 (lb=0, ub=inf)
-        # z_abs >= -u →  z_abs + u >= 0 (lb=0, ub=inf)
-        mpc.set_nl_cons('z_geq_pos_u', z_abs - u, ub=1e10, soft_constraint=False)
-        mpc.set_nl_cons('z_geq_neg_u', z_abs + u, ub=1e10, soft_constraint=False)
+        # Constraint 1: z_abs >= u (i.e., u - z_abs <= 0)
+        mpc.set_nl_cons('z_abs_geq_u', u - z_abs, ub=0, soft_constraint=False)
         
-        # Note: These are formulated as g(x,u) <= ub
-        # z - u >= 0 becomes -(z - u) <= 0, but do-mpc uses ub=ub
-        # We use z_abs - u >= 0 rewritten as -z_abs + u <= 0
+        # Constraint 2: z_abs >= -u (i.e., -u - z_abs <= 0)
+        mpc.set_nl_cons('z_abs_geq_neg_u', -u - z_abs, ub=0, soft_constraint=False)
         
         # do-mpc set_nl_cons uses:
         # lb <= expr <= ub

@@ -16,7 +16,7 @@ Usage:
     python scripts/run_paper.py --dry-run
     
     # Paper trading with execution
-    python scripts/run_paper.py
+    python scripts/run_paper.py --execute
     
     # Custom interval (seconds)
     python scripts/run_paper.py --interval 30
@@ -30,8 +30,9 @@ Prerequisites:
 import asyncio
 import argparse
 import signal
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from typing import Optional
+import pytz
 
 # Ensure we can import from src
 import sys
@@ -39,13 +40,14 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.data import IBKRDataProvider, DataProviderConfig, OptionsChainManager
-from src.strategy import GammaScalpingStrategy, GammaScalpingConfig
+from src.strategy import GammaScalpingStrategy, GammaScalpingConfig, PositionManager, PositionManagerConfig, PositionAction
 from src.models.greeks import OptionPosition, EquityPosition, PositionType
-from src.core.types import OptionType
-from src.execution import OrderManager
+from src.core.types import OptionType, OrderStatus
+from src.control.mpc_controller import MPCConfig
+from src.execution import OrderManager, OptionOrderRequest
 from src.risk import RiskManager, RiskConfig
 from src.utils.logging import setup_logging, LogConfig, get_logger
-from src.utils.config import load_config, get_broker_config, get_strategy_config, get_risk_config
+from src.utils.config import load_config, get_broker_config, get_strategy_config, get_risk_config, get_mpc_config
 from src.utils.metrics import MetricsTracker
 
 # Setup logging
@@ -56,6 +58,24 @@ log_config = LogConfig(
 )
 setup_logging(log_config)
 logger = get_logger("paper_trading")
+
+# US Market hours (Eastern Time)
+ET = pytz.timezone('US/Eastern')
+MARKET_OPEN = time(9, 30)   # 9:30 AM ET
+MARKET_CLOSE = time(16, 0)  # 4:00 PM ET
+
+
+def is_market_open() -> bool:
+    """Check if US equity market is currently open."""
+    now_et = datetime.now(ET)
+    
+    # Check if weekday (0=Monday, 4=Friday)
+    if now_et.weekday() > 4:
+        return False
+    
+    # Check if within trading hours
+    current_time = now_et.time()
+    return MARKET_OPEN <= current_time <= MARKET_CLOSE
 
 
 class PaperTradingRunner:
@@ -99,6 +119,7 @@ class PaperTradingRunner:
         self._order_mgr: Optional[OrderManager] = None
         self._risk_mgr: Optional[RiskManager] = None
         self._metrics: Optional[MetricsTracker] = None
+        self._position_mgr: Optional[PositionManager] = None
         
         # Current positions (for paper trading simulation)
         self._equity_position: int = 0
@@ -127,19 +148,41 @@ class PaperTradingRunner:
         # Options chain manager
         self._chain_mgr = OptionsChainManager("SPY")
         
-        # Strategy
-        strategy_config = GammaScalpingConfig(
-            mpc_horizon=20,
-            mpc_q_max=500,
-            mpc_u_max=100,
-            min_trade_size=5,  # Minimum 5 shares to trade
+        # Strategy configuration
+        yaml_strategy_config = strategy_config  # Preserve YAML config reference
+        
+        # Load MPC config from YAML and create MPCConfig
+        mpc_params = get_mpc_config()
+        mpc_config = MPCConfig.from_yaml_config(mpc_params)
+        logger.info(
+            f"MPC config loaded: horizon={mpc_config.n_horizon}, "
+            f"q_max={mpc_config.q_max}, u_max={mpc_config.u_max}, "
+            f"w_delta={mpc_config.w_delta}"
         )
-        self._strategy = GammaScalpingStrategy(strategy_config)
+        
+        gamma_config = GammaScalpingConfig(
+            mpc_horizon=mpc_config.n_horizon,
+            mpc_q_max=mpc_config.q_max,
+            mpc_u_max=mpc_config.u_max,
+            min_trade_size=yaml_strategy_config.hedging.min_hedge_size,
+        )
+        self._strategy = GammaScalpingStrategy(gamma_config, mpc_config=mpc_config)
         
         # Connect to IBKR
         logger.info(f"Connecting to IBKR at port {self.port}...")
         await self._provider.connect()
         logger.info("✓ Connected to IBKR")
+        
+        # Subscribe to streaming quotes for SPY (more efficient than snapshots)
+        await self._provider.subscribe_quotes(["SPY"])
+        logger.info("✓ Subscribed to SPY streaming quotes")
+        
+        # Subscribe to P&L updates for accurate P&L tracking
+        try:
+            await self._provider.subscribe_pnl()
+            logger.info("✓ Subscribed to P&L updates")
+        except Exception as e:
+            logger.warning(f"Could not subscribe to P&L updates: {e}")
         
         # Initialize order manager with the IB connection
         self._order_mgr = OrderManager(self._provider._ib)
@@ -148,7 +191,7 @@ class PaperTradingRunner:
         # Initialize risk manager - use YAML config with CLI overrides
         risk_config = RiskConfig(
             max_equity_position=int(risk_config_yaml.max_delta),
-            max_single_trade=strategy_config.hedging.max_delta_exposure,
+            max_single_trade=yaml_strategy_config.hedging.max_delta_exposure,
             max_daily_loss=risk_config_yaml.max_loss_daily,
             max_portfolio_delta=risk_config_yaml.max_delta,
             max_portfolio_gamma=risk_config_yaml.max_gamma,
@@ -163,6 +206,18 @@ class PaperTradingRunner:
         # Initialize metrics tracker
         self._metrics = MetricsTracker()
         logger.info("✓ Metrics tracker initialized")
+        
+        # Initialize position manager for rolling/exit logic
+        position_config = PositionManagerConfig(
+            roll_dte=yaml_strategy_config.instrument_selection.roll_dte,
+            roll_to_dte=yaml_strategy_config.instrument_selection.roll_to_dte,
+            take_profit_pct=yaml_strategy_config.take_profit,
+            stop_loss_pct=yaml_strategy_config.stop_loss,
+            enable_rolling=True,
+            enable_pnl_exits=True,
+        )
+        self._position_mgr = PositionManager(position_config)
+        logger.info("✓ Position manager initialized")
         
         # Fetch initial data
         await self._fetch_market_data()
@@ -189,8 +244,13 @@ class PaperTradingRunner:
             logger.info(f"Options: {stats['total_contracts']} contracts loaded")
     
     async def _setup_initial_position(self) -> None:
-        """Set up initial ATM straddle position (simulated for paper trading)."""
-        # Get ATM straddle
+        """
+        Set up initial ATM straddle position.
+        
+        If not dry_run and market is open, places real option orders.
+        Otherwise, creates simulated positions for Greeks calculation.
+        """
+        # Get ATM straddle quotes
         atm_call, atm_put = self._chain_mgr.get_atm_straddle(
             target_dte=self.target_dte,
         )
@@ -199,20 +259,68 @@ class PaperTradingRunner:
             logger.error("Could not find ATM straddle")
             return
         
-        logger.info(
-            f"Setting up ATM straddle: Strike ${atm_call.strike:.0f}, "
-            f"Expiry {atm_call.expiry.strftime('%Y-%m-%d')}"
-        )
-        
-        # Convert to option positions
+        strike = atm_call.strike
+        expiry = atm_call.expiry
         spot = self._chain_mgr._spot_price
         
+        logger.info(
+            f"Setting up ATM straddle: Strike ${strike:.0f}, "
+            f"Expiry {expiry.strftime('%Y-%m-%d')}"
+        )
+        
+        # Decide whether to place real orders
+        should_trade_options = not self.dry_run and is_market_open()
+        
+        if should_trade_options:
+            # Place real option orders via IBKR
+            logger.info(f"Placing option orders: {self.position_size} contracts each leg")
+            
+            try:
+                call_order, put_order = await self._order_mgr.submit_straddle_orders(
+                    underlying="SPY",
+                    expiry=expiry,
+                    strike=strike,
+                    quantity=self.position_size,
+                    use_limit=False,  # Market orders for faster fill
+                )
+                
+                # Wait for fills (30 second timeout)
+                orders = [call_order, put_order]
+                filled = await self._order_mgr.wait_for_fills(orders, timeout=30.0)
+                
+                if not filled:
+                    logger.error("Option orders did not fill in time - proceeding with simulation")
+                    should_trade_options = False
+                else:
+                    logger.info(
+                        f"✓ Straddle filled: "
+                        f"Call @ ${call_order.avg_fill_price:.2f}, "
+                        f"Put @ ${put_order.avg_fill_price:.2f}"
+                    )
+                    
+            except Exception as e:
+                logger.error(f"Failed to place option orders: {e}")
+                should_trade_options = False
+        else:
+            reason = "dry-run mode" if self.dry_run else "market closed"
+            logger.info(f"Simulating option positions ({reason})")
+        
+        # Create internal position objects for Greeks calculation
         positions = self._chain_mgr.to_option_positions([
             (atm_call, self.position_size),
             (atm_put, self.position_size),
         ], spot_price=spot)
         
         self._option_positions = positions
+        
+        # Record entry prices for P&L tracking
+        if self._position_mgr:
+            for pos in positions:
+                entry_price = pos.current_price if pos.current_price > 0 else (
+                    atm_call.mid if pos.is_call else atm_put.mid
+                )
+                self._position_mgr.set_entry_price(pos.symbol, entry_price)
+                logger.debug(f"Entry recorded: {pos.symbol} @ ${entry_price:.2f}")
         
         # Update strategy with positions
         self._strategy.set_option_positions(positions)
@@ -227,12 +335,97 @@ class PaperTradingRunner:
             f"Net Δ={rec.net_delta:.1f}"
         )
     
+    async def _refresh_ibkr_greeks(self) -> None:
+        """Refresh Greeks from IBKR for all option positions."""
+        option_quotes = {}
+        
+        for pos in self._option_positions:
+            try:
+                # Parse position details
+                from src.core.types import OptionType as OT
+                opt_type = OT.CALL if pos.is_call else OT.PUT
+                
+                quote = await self._provider.get_option_quote(
+                    underlying="SPY",
+                    expiry=pos.expiry,
+                    strike=pos.strike,
+                    option_type=opt_type,
+                )
+                option_quotes[pos.symbol] = quote
+                
+            except Exception as e:
+                logger.debug(f"Failed to get IBKR quote for {pos.symbol}: {e}")
+        
+        # Update strategy with IBKR Greeks
+        if option_quotes:
+            updated = self._strategy.update_greeks_from_quotes(option_quotes)
+            if updated > 0:
+                logger.debug(f"Refreshed {updated} positions with IBKR Greeks")
+    
+    async def _reconcile_positions(self) -> bool:
+        """
+        Reconcile internal position state with IBKR.
+        
+        Compares internal equity position count with actual IBKR positions
+        and logs any discrepancies.
+        
+        Returns:
+            True if positions match, False if discrepancy found
+        """
+        try:
+            ibkr_positions = await self._provider.get_positions()
+        except Exception as e:
+            logger.warning(f"Failed to fetch IBKR positions for reconciliation: {e}")
+            return True  # Assume OK if we can't check
+        
+        # Check SPY equity position
+        spy_position = ibkr_positions.get("SPY")
+        ibkr_qty = spy_position.quantity if spy_position else 0
+        
+        if ibkr_qty != self._equity_position:
+            discrepancy = ibkr_qty - self._equity_position
+            logger.warning(
+                f"[RECONCILIATION] SPY position mismatch! "
+                f"Internal={self._equity_position}, IBKR={ibkr_qty}, "
+                f"Discrepancy={discrepancy:+d} shares"
+            )
+            
+            # Auto-correct internal state to match IBKR
+            logger.info(f"Correcting internal position to match IBKR: {ibkr_qty}")
+            self._equity_position = ibkr_qty
+            self._strategy.set_equity_position("SPY", self._equity_position, 0)
+            return False
+        
+        # Check option positions
+        for pos in self._option_positions:
+            # Options have complex symbols, check by underlying + strike + expiry
+            matching_ibkr = None
+            for symbol, ibkr_pos in ibkr_positions.items():
+                if (ibkr_pos.is_option and 
+                    ibkr_pos.strike == pos.strike and
+                    ibkr_pos.expiry and ibkr_pos.expiry.date() == pos.expiry.date()):
+                    matching_ibkr = ibkr_pos
+                    break
+            
+            if matching_ibkr:
+                if matching_ibkr.quantity != pos.quantity * pos.multiplier / 100:  # Convert to contracts
+                    logger.warning(
+                        f"[RECONCILIATION] Option position mismatch for {pos.symbol}! "
+                        f"Internal={pos.quantity} contracts, IBKR={matching_ibkr.quantity}"
+                    )
+        
+        logger.debug("Position reconciliation passed")
+        return True
+    
     async def run(self) -> None:
         """Run the paper trading loop."""
         self._running = True
         
         # Setup initial position
         await self._setup_initial_position()
+        
+        # Initial position reconciliation
+        await self._reconcile_positions()
         
         logger.info(f"Starting paper trading loop (interval={self.interval}s, dry_run={self.dry_run})")
         print()
@@ -247,14 +440,43 @@ class PaperTradingRunner:
             try:
                 iteration += 1
                 
-                # Fetch latest data
-                spy_quote = await self._provider.get_quote("SPY")
+                # Fetch latest data (prefer streaming, fallback to snapshot)
+                spy_quote = self._provider.get_streaming_quote("SPY")
+                if spy_quote is None or spy_quote.mid <= 0:
+                    # Fallback to snapshot if streaming not ready
+                    spy_quote = await self._provider.get_quote("SPY")
+                
                 spot = spy_quote.mid
                 self._chain_mgr.update_spot(spot)
                 
                 # Update option prices and IVs (simplified - just update underlying)
                 for pos in self._option_positions:
                     pos.underlying_price = spot
+                
+                # Refresh IBKR Greeks every 5 ticks (reduces API calls)
+                if iteration % 5 == 1 and self._option_positions:
+                    await self._refresh_ibkr_greeks()
+                
+                # Periodic position reconciliation (every 60 ticks / ~1 hour)
+                if iteration % 60 == 0:
+                    await self._reconcile_positions()
+                
+                # Check positions for rolling/exit signals (every 10 ticks)
+                if iteration % 10 == 1 and self._option_positions and self._position_mgr:
+                    position_signals = self._position_mgr.check_positions(self._option_positions)
+                    for signal in position_signals:
+                        if signal.action == PositionAction.ROLL:
+                            logger.warning(
+                                f"[ROLL SIGNAL] {signal.position.symbol}: {signal.reason} "
+                                f"(target DTE={signal.target_dte})"
+                            )
+                            # TODO: Implement automatic rolling
+                        elif signal.action in (PositionAction.EXIT_PROFIT, PositionAction.EXIT_LOSS):
+                            logger.warning(
+                                f"[EXIT SIGNAL] {signal.position.symbol}: {signal.reason} "
+                                f"(P&L={signal.pnl_pct:.1%})"
+                            )
+                            # TODO: Implement automatic exit
                 
                 # Get hedge recommendation
                 rec = self._strategy.update(spot_price=spot)
@@ -311,6 +533,9 @@ class PaperTradingRunner:
                             price=spot,
                             expected_price=spot,  # No slippage in dry run
                         )
+                    elif not is_market_open():
+                        # Don't submit orders outside market hours
+                        logger.warning(f"[MARKET CLOSED] Skipping order: {rec.trade_direction} {abs(trade_qty):.0f} SPY")
                     else:
                         # Execute via OrderManager
                         try:
@@ -324,8 +549,11 @@ class PaperTradingRunner:
                             await asyncio.sleep(0.5)
                             
                             if order.status.value == "FILLED":
-                                self._equity_position = int(self._equity_position + order.filled_quantity)
-                                self._strategy.execute_hedge(order.filled_quantity)
+                                # Preserve sign from trade_qty (filled_quantity is always positive)
+                                signed_fill = trade_qty if abs(trade_qty) == order.filled_quantity else \
+                                              (1 if trade_qty > 0 else -1) * order.filled_quantity
+                                self._equity_position = int(self._equity_position + signed_fill)
+                                self._strategy.execute_hedge(signed_fill)
                                 logger.info(
                                     f"✓ Order filled: {order.filled_quantity} @ ${order.avg_fill_price:.2f}"
                                 )
@@ -350,8 +578,11 @@ class PaperTradingRunner:
                             self._equity_position += int(trade_qty)
                             self._strategy.execute_hedge(trade_qty)
                 
-                # Wait for next iteration
-                await asyncio.sleep(self.interval)
+                # Wait for next iteration (check running flag every second for fast shutdown)
+                for _ in range(int(self.interval)):
+                    if not self._running:
+                        break
+                    await asyncio.sleep(1.0)
                 
             except asyncio.CancelledError:
                 break
@@ -371,6 +602,14 @@ class PaperTradingRunner:
         """Clean up resources."""
         logger.info("Shutting down...")
         
+        # Get final P&L from IBKR before disconnecting
+        ibkr_pnl = None
+        if self._provider and self._provider.is_connected():
+            try:
+                ibkr_pnl = self._provider.get_pnl()
+            except Exception as e:
+                logger.debug(f"Could not get final P&L: {e}")
+        
         # Cancel any open orders
         if self._order_mgr:
             await self._order_mgr.cancel_all_orders()
@@ -388,6 +627,12 @@ class PaperTradingRunner:
             print(f"Final equity position: {state['equity_position']} shares")
             print(f"Final net delta: {state['net_delta']:.1f}")
             print(f"Total ticks processed: {state['tick_count']}")
+        
+        if ibkr_pnl:
+            print(f"IBKR P&L:")
+            print(f"  Daily P&L: ${ibkr_pnl.get('daily_pnl', 0):.2f}")
+            print(f"  Unrealized: ${ibkr_pnl.get('unrealized_pnl', 0):.2f}")
+            print(f"  Realized: ${ibkr_pnl.get('realized_pnl', 0):.2f}")
         
         if self._order_mgr:
             stats = self._order_mgr.get_session_stats()

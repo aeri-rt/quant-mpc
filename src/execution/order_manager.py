@@ -14,12 +14,12 @@ import asyncio
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Tuple
 import uuid
 
-from ib_insync import IB, Stock, MarketOrder, LimitOrder, Trade, Order as IBOrder
+from ib_insync import IB, Stock, Option, MarketOrder, LimitOrder, Trade, Order as IBOrder
 
-from src.core.types import OrderSide, OrderType, OrderStatus, Fill
+from src.core.types import OrderSide, OrderType, OrderStatus, Fill, OptionType
 from src.utils.logging import get_logger, log_trade
 
 logger = get_logger("execution")
@@ -55,6 +55,48 @@ class OrderRequest:
     def abs_quantity(self) -> int:
         """Absolute quantity."""
         return abs(self.quantity)
+
+
+@dataclass
+class OptionOrderRequest:
+    """Request to submit an option order."""
+    
+    underlying: str            # e.g., "SPY"
+    expiry: datetime           # Expiration date
+    strike: float              # Strike price
+    option_type: OptionType    # CALL or PUT
+    quantity: int              # Positive = buy, negative = sell (in contracts)
+    order_type: OrderType = OrderType.MARKET
+    limit_price: Optional[float] = None
+    
+    # Metadata
+    strategy: str = "gamma_scalping"
+    reason: str = ""
+    
+    # Internal
+    id: str = field(default_factory=lambda: str(uuid.uuid4())[:8])
+    timestamp: datetime = field(default_factory=datetime.now)
+    
+    @property
+    def side(self) -> OrderSide:
+        """Get order side from quantity."""
+        return OrderSide.BUY if self.quantity > 0 else OrderSide.SELL
+    
+    @property
+    def abs_quantity(self) -> int:
+        """Absolute quantity (contracts)."""
+        return abs(self.quantity)
+    
+    @property
+    def right(self) -> str:
+        """IBKR option right (C or P)."""
+        return 'C' if self.option_type == OptionType.CALL else 'P'
+    
+    @property
+    def symbol(self) -> str:
+        """Generate option symbol."""
+        exp_str = self.expiry.strftime('%Y%m%d')
+        return f"{self.underlying}{exp_str}{self.right}{int(self.strike*1000):08d}"
 
 
 @dataclass
@@ -287,6 +329,254 @@ class OrderManager:
         )
         
         return await self.submit_order(request)
+    
+    async def submit_option_order(
+        self,
+        request: OptionOrderRequest,
+    ) -> ManagedOrder:
+        """
+        Submit an option order to IBKR.
+        
+        Args:
+            request: OptionOrderRequest with underlying, expiry, strike, type, quantity
+            
+        Returns:
+            ManagedOrder tracking the order lifecycle
+        """
+        if not self._ib.isConnected():
+            raise ConnectionError("Not connected to IBKR")
+        
+        logger.info(
+            f"Submitting option order: {request.side.value} {request.abs_quantity} "
+            f"{request.underlying} {request.expiry.strftime('%Y-%m-%d')} "
+            f"${request.strike:.0f} {request.option_type.value}",
+            order_id=request.id,
+            order_type=request.order_type.value,
+            limit_price=request.limit_price,
+            reason=request.reason,
+        )
+        
+        # Create option contract
+        contract = Option(
+            symbol=request.underlying,
+            lastTradeDateOrContractMonth=request.expiry.strftime('%Y%m%d'),
+            strike=request.strike,
+            right=request.right,
+            exchange='SMART',
+            currency='USD',
+            tradingClass=request.underlying,
+        )
+        
+        # Qualify the contract
+        qualified = await self._ib.qualifyContractsAsync(contract)
+        if not qualified:
+            raise ValueError(f"Failed to qualify option contract: {request.symbol}")
+        
+        # Create IB order
+        action = "BUY" if request.quantity > 0 else "SELL"
+        
+        if request.order_type == OrderType.MARKET:
+            ib_order = MarketOrder(action, request.abs_quantity)
+        elif request.order_type == OrderType.LIMIT:
+            if request.limit_price is None:
+                raise ValueError("Limit price required for limit orders")
+            ib_order = LimitOrder(action, request.abs_quantity, request.limit_price)
+        else:
+            raise ValueError(f"Unsupported order type: {request.order_type}")
+        
+        # Create managed order using equity OrderRequest as base
+        equity_request = OrderRequest(
+            symbol=request.symbol,
+            quantity=request.quantity,
+            order_type=request.order_type,
+            limit_price=request.limit_price,
+            strategy=request.strategy,
+            reason=request.reason,
+            id=request.id,
+        )
+        
+        managed_order = ManagedOrder(request=equity_request)
+        self._orders[request.id] = managed_order
+        
+        try:
+            # Submit to IBKR
+            trade = self._ib.placeOrder(contract, ib_order)
+            
+            managed_order.ib_trade = trade
+            managed_order.broker_order_id = trade.order.orderId
+            managed_order.status = OrderStatus.SUBMITTED
+            managed_order.submitted_at = datetime.now()
+            
+            logger.info(
+                f"Option order submitted to IBKR",
+                order_id=request.id,
+                broker_order_id=managed_order.broker_order_id,
+                contract=str(contract),
+            )
+            
+            # Log trade submission
+            log_trade(
+                symbol=request.symbol,
+                side=request.side.value,
+                quantity=request.abs_quantity,
+                order_type=request.order_type.value,
+                status="SUBMITTED",
+                order_id=request.id,
+                broker_order_id=managed_order.broker_order_id,
+                reason=request.reason,
+            )
+            
+        except Exception as e:
+            managed_order.status = OrderStatus.REJECTED
+            managed_order.error_message = str(e)
+            logger.error(f"Option order submission failed: {e}", order_id=request.id)
+            
+            log_trade(
+                symbol=request.symbol,
+                side=request.side.value,
+                quantity=request.abs_quantity,
+                order_type=request.order_type.value,
+                status="REJECTED",
+                order_id=request.id,
+                error=str(e),
+            )
+        
+        return managed_order
+    
+    async def submit_straddle_orders(
+        self,
+        underlying: str,
+        expiry: datetime,
+        strike: float,
+        quantity: int,
+        use_limit: bool = False,
+        limit_offset: float = 0.05,
+    ) -> Tuple[ManagedOrder, ManagedOrder]:
+        """
+        Submit orders for an ATM straddle (call + put at same strike).
+        
+        Args:
+            underlying: Symbol (e.g., "SPY")
+            expiry: Expiration date
+            strike: Strike price
+            quantity: Number of contracts per leg (positive = buy)
+            use_limit: If True, use limit orders
+            limit_offset: Offset from mid for limit orders
+            
+        Returns:
+            Tuple of (call_order, put_order)
+        """
+        # Get current option quotes for limit pricing
+        limit_call = None
+        limit_put = None
+        
+        if use_limit:
+            # Request option quotes
+            call_contract = Option(
+                underlying, expiry.strftime('%Y%m%d'), strike, 'C', 'SMART', 'USD', underlying
+            )
+            put_contract = Option(
+                underlying, expiry.strftime('%Y%m%d'), strike, 'P', 'SMART', 'USD', underlying
+            )
+            
+            await self._ib.qualifyContractsAsync(call_contract, put_contract)
+            
+            call_ticker = self._ib.reqMktData(call_contract, '', snapshot=True)
+            put_ticker = self._ib.reqMktData(put_contract, '', snapshot=True)
+            await asyncio.sleep(0.5)
+            
+            self._ib.cancelMktData(call_contract)
+            self._ib.cancelMktData(put_contract)
+            
+            # Set limit prices
+            if call_ticker.bid and call_ticker.ask:
+                call_mid = (call_ticker.bid + call_ticker.ask) / 2
+                limit_call = round(call_mid + limit_offset if quantity > 0 else call_mid - limit_offset, 2)
+            
+            if put_ticker.bid and put_ticker.ask:
+                put_mid = (put_ticker.bid + put_ticker.ask) / 2
+                limit_put = round(put_mid + limit_offset if quantity > 0 else put_mid - limit_offset, 2)
+        
+        # Create order requests
+        call_request = OptionOrderRequest(
+            underlying=underlying,
+            expiry=expiry,
+            strike=strike,
+            option_type=OptionType.CALL,
+            quantity=quantity,
+            order_type=OrderType.LIMIT if use_limit and limit_call else OrderType.MARKET,
+            limit_price=limit_call,
+            strategy="gamma_scalping",
+            reason="Straddle entry - Call leg",
+        )
+        
+        put_request = OptionOrderRequest(
+            underlying=underlying,
+            expiry=expiry,
+            strike=strike,
+            option_type=OptionType.PUT,
+            quantity=quantity,
+            order_type=OrderType.LIMIT if use_limit and limit_put else OrderType.MARKET,
+            limit_price=limit_put,
+            strategy="gamma_scalping",
+            reason="Straddle entry - Put leg",
+        )
+        
+        # Submit both orders
+        call_order = await self.submit_option_order(call_request)
+        put_order = await self.submit_option_order(put_request)
+        
+        logger.info(
+            f"Straddle orders submitted: {underlying} {expiry.strftime('%Y-%m-%d')} ${strike:.0f}",
+            call_order_id=call_request.id,
+            put_order_id=put_request.id,
+            quantity=quantity,
+        )
+        
+        return call_order, put_order
+    
+    async def wait_for_fills(
+        self,
+        orders: List[ManagedOrder],
+        timeout: float = 30.0,
+        poll_interval: float = 0.5,
+    ) -> bool:
+        """
+        Wait for multiple orders to fill.
+        
+        Args:
+            orders: List of orders to wait for
+            timeout: Maximum wait time in seconds
+            poll_interval: Time between status checks
+            
+        Returns:
+            True if all orders filled, False if timeout
+        """
+        start = datetime.now()
+        
+        while (datetime.now() - start).total_seconds() < timeout:
+            # Check if all filled
+            all_filled = all(o.status == OrderStatus.FILLED for o in orders)
+            if all_filled:
+                logger.info(f"All {len(orders)} orders filled")
+                return True
+            
+            # Check for any rejections
+            any_rejected = any(o.status == OrderStatus.REJECTED for o in orders)
+            if any_rejected:
+                rejected = [o for o in orders if o.status == OrderStatus.REJECTED]
+                logger.warning(f"{len(rejected)} orders rejected")
+                return False
+            
+            await asyncio.sleep(poll_interval)
+        
+        # Timeout - log status of unfilled orders
+        unfilled = [o for o in orders if o.status != OrderStatus.FILLED]
+        logger.warning(
+            f"Timeout waiting for fills. {len(unfilled)}/{len(orders)} unfilled",
+            unfilled_ids=[o.request.id for o in unfilled],
+        )
+        return False
     
     # -------------------------------------------------------------------------
     # Order Management

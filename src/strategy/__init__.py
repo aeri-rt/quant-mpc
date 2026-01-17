@@ -16,8 +16,19 @@ from .gamma_scalping import (
     HedgeRecommendation,
 )
 
+from .position_manager import (
+    PositionManager,
+    PositionManagerConfig,
+    PositionAction,
+    PositionSignal,
+)
+
 __all__ = [
     'GammaScalpingStrategy',
     'GammaScalpingConfig',
     'HedgeRecommendation',
+    'PositionManager',
+    'PositionManagerConfig',
+    'PositionAction',
+    'PositionSignal',
 ]

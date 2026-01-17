@@ -1,0 +1,736 @@
+{
+  "summary": {
+    "session_date": "2026-01-15",
+    "session_start": "2026-01-15T11:30:46.040040",
+    "duration_minutes": 264.39034031666665,
+    "trades": {
+      "n_trades": 0,
+      "total_volume": 0,
+      "total_notional": 0.0,
+      "total_commission": 0.0,
+      "avg_trade_size": 0.0,
+      "avg_slippage_bps": 0.0
+    },
+    "greeks": {
+      "n_snapshots": 112,
+      "avg_delta": 0.0,
+      "std_delta": 0.0,
+      "max_abs_delta": 0.0,
+      "min_delta": 0.0,
+      "max_delta": 0.0,
+      "avg_gamma": 0.0,
+      "pct_time_hedged": 100.0
+    },
+    "pnl": {
+      "realized_pnl": 0.0,
+      "unrealized_pnl": 0.0,
+      "total_pnl": 0.0,
+      "max_drawdown": 0.0
+    },
+    "total_costs": 0.0,
+    "net_pnl_after_costs": 0.0
+  },
+  "trades": [],
+  "greeks_history": [
+    {
+      "timestamp": "2026-01-15T11:43:38.098836",
+      "spot_price": 694.865,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T11:44:38.492900",
+      "spot_price": 694.905,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T11:45:38.787074",
+      "spot_price": 694.965,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T11:46:39.067974",
+      "spot_price": 694.915,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T11:47:39.359886",
+      "spot_price": 694.815,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T11:48:39.958669",
+      "spot_price": 694.945,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T11:49:40.248468",
+      "spot_price": 695.105,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T11:50:40.507326",
+      "spot_price": 695.045,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T11:51:40.790604",
+      "spot_price": 695.325,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T11:52:41.069268",
+      "spot_price": 695.265,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T11:53:41.350031",
+      "spot_price": 694.945,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T11:54:41.828684",
+      "spot_price": 695.085,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T11:55:42.119812",
+      "spot_price": 694.955,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T11:56:42.445767",
+      "spot_price": 694.975,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T11:57:42.724263",
+      "spot_price": 694.955,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T11:58:43.007693",
+      "spot_price": 695.045,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T11:59:43.301086",
+      "spot_price": 695.015,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T12:00:43.593615",
+      "spot_price": 695.115,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T12:01:44.002037",
+      "spot_price": 695.165,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T12:02:44.300340",
+      "spot_price": 695.255,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T12:03:44.568288",
+      "spot_price": 695.425,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T12:04:44.940715",
+      "spot_price": 695.345,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T12:05:45.228618",
+      "spot_price": 695.385,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T12:06:45.493840",
+      "spot_price": 695.285,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T12:07:45.811872",
+      "spot_price": 695.265,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T12:08:46.081119",
+      "spot_price": 695.305,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T12:09:46.367961",
+      "spot_price": 695.345,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T12:10:46.665574",
+      "spot_price": 695.275,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T12:11:47.023917",
+      "spot_price": 695.305,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T12:12:47.577972",
+      "spot_price": 695.335,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:02:17.175870",
+      "spot_price": 694.105,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:03:18.009666",
+      "spot_price": 694.315,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:04:18.358085",
+      "spot_price": 694.445,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:05:18.984853",
+      "spot_price": 694.545,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:06:19.271386",
+      "spot_price": 694.515,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:07:19.612911",
+      "spot_price": 694.635,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:08:19.895114",
+      "spot_price": 694.685,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:09:20.352372",
+      "spot_price": 694.725,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:10:20.763424",
+      "spot_price": 694.695,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:11:21.184807",
+      "spot_price": 694.765,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:12:21.718639",
+      "spot_price": 694.425,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:13:22.046950",
+      "spot_price": 694.645,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:14:22.327730",
+      "spot_price": 694.575,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:15:22.637182",
+      "spot_price": 694.575,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:16:22.915566",
+      "spot_price": 694.405,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:17:23.335041",
+      "spot_price": 694.525,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:18:23.635451",
+      "spot_price": 694.495,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:19:23.964500",
+      "spot_price": 694.555,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:20:24.247291",
+      "spot_price": 694.57,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:21:24.900233",
+      "spot_price": 694.705,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:22:25.201143",
+      "spot_price": 694.715,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:23:25.481174",
+      "spot_price": 694.585,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:24:25.771923",
+      "spot_price": 694.73,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:25:26.248416",
+      "spot_price": 694.625,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:26:26.639654",
+      "spot_price": 694.705,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:27:26.933051",
+      "spot_price": 694.745,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:28:27.239605",
+      "spot_price": 694.815,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:29:27.545277",
+      "spot_price": 694.835,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:30:27.809649",
+      "spot_price": 694.855,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:31:28.331190",
+      "spot_price": 695.035,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:32:28.825439",
+      "spot_price": 694.905,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:33:29.232932",
+      "spot_price": 694.945,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:34:29.753256",
+      "spot_price": 695.095,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:35:30.083770",
+      "spot_price": 695.165,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:36:30.367096",
+      "spot_price": 695.075,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:37:30.657812",
+      "spot_price": 695.075,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:38:30.931686",
+      "spot_price": 694.965,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:39:31.264402",
+      "spot_price": 694.855,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:40:31.673840",
+      "spot_price": 694.845,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:41:31.944354",
+      "spot_price": 694.895,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:42:32.223217",
+      "spot_price": 694.975,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:43:32.550341",
+      "spot_price": 694.965,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:44:32.995850",
+      "spot_price": 694.965,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:45:33.275332",
+      "spot_price": 695.025,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:46:33.549373",
+      "spot_price": 694.955,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:47:33.833541",
+      "spot_price": 694.915,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:48:34.141938",
+      "spot_price": 694.915,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:49:34.409958",
+      "spot_price": 694.915,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:50:34.700693",
+      "spot_price": 694.785,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:51:34.999557",
+      "spot_price": 694.735,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:52:35.322288",
+      "spot_price": 694.775,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:53:35.620459",
+      "spot_price": 694.765,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:54:35.918994",
+      "spot_price": 694.785,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:55:36.185341",
+      "spot_price": 694.715,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:56:36.491515",
+      "spot_price": 694.835,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:57:36.766536",
+      "spot_price": 694.685,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:58:37.050378",
+      "spot_price": 694.725,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T13:59:37.372514",
+      "spot_price": 694.715,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T14:00:37.653927",
+      "spot_price": 694.585,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T14:01:37.921431",
+      "spot_price": 694.545,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T14:02:38.180411",
+      "spot_price": 694.435,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T14:03:39.184155",
+      "spot_price": 694.395,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T14:04:39.463497",
+      "spot_price": 694.225,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T14:05:39.729694",
+      "spot_price": 694.035,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T14:22:38.157631",
+      "spot_price": 694.185,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T15:14:14.496874",
+      "spot_price": 692.565,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T15:22:41.497371",
+      "spot_price": 691.755,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T15:43:48.762704",
+      "spot_price": 691.835,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T15:54:00.950963",
+      "spot_price": 690.36,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    },
+    {
+      "timestamp": "2026-01-15T15:55:01.405039",
+      "spot_price": 690.36,
+      "delta": 0.0,
+      "gamma": 0.0,
+      "net_delta": 0.0
+    }
+  ]
+}

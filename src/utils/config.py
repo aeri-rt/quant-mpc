@@ -61,6 +61,13 @@ class MPCWeights:
 
 
 @dataclass
+class MPCCosts:
+    """MPC transaction cost model."""
+    c_quad: float = 0.001  # Quadratic cost per share² (market impact)
+    c_lin: float = 0.01    # Linear cost per share (spread + commission)
+
+
+@dataclass
 class MPCConstraints:
     """MPC constraints."""
     max_position: int = 1000
@@ -80,6 +87,7 @@ class MPCParams:
     solver_tol: float = 1e-6
     weights: MPCWeights = field(default_factory=MPCWeights)
     constraints: MPCConstraints = field(default_factory=MPCConstraints)
+    costs: MPCCosts = field(default_factory=MPCCosts)
     
     # Mean reversion
     kappa_init: float = 0.1
@@ -226,6 +234,7 @@ def load_config(config_dir: Optional[Path] = None, reload: bool = False) -> AppC
     mpc_section = mpc_params.get("mpc", {})
     weights_data = mpc_section.get("weights", {})
     constraints_data = mpc_section.get("constraints", {})
+    costs_data = mpc_section.get("costs", {})
     mean_rev_data = mpc_params.get("mean_reversion", {})
     
     mpc = MPCParams(
@@ -246,6 +255,10 @@ def load_config(config_dir: Optional[Path] = None, reload: bool = False) -> AppC
             max_trade_rate=constraints_data.get("max_trade_rate", 200),
             max_delta=constraints_data.get("max_delta", 500),
             min_delta=constraints_data.get("min_delta", -500),
+        ),
+        costs=MPCCosts(
+            c_quad=costs_data.get("c_quad", 0.001),
+            c_lin=costs_data.get("c_lin", 0.01),
         ),
         kappa_init=mean_rev_data.get("kappa_init", 0.1),
         kappa_min=mean_rev_data.get("kappa_min", 0.0),

@@ -1,0 +1,2380 @@
+{
+  "summary": {
+    "session_date": "2026-01-14",
+    "session_start": "2026-01-14T09:34:40.345130",
+    "duration_minutes": 416.9524018666667,
+    "trades": {
+      "n_trades": 182,
+      "total_volume": 4203,
+      "total_notional": 2893331.51,
+      "total_commission": 0.0,
+      "avg_trade_size": 23.093406593406595,
+      "max_trade_size": 100,
+      "avg_slippage_bps": 0.0003977057701874581,
+      "max_slippage_bps": 1.0871534698321503,
+      "total_bought": 2130,
+      "total_sold": 2073,
+      "net_traded": 57
+    },
+    "greeks": {
+      "n_snapshots": 373,
+      "avg_delta": -0.6710188528342095,
+      "std_delta": 21.628105343094564,
+      "max_abs_delta": 116.36896927209506,
+      "min_delta": -74.29320239883515,
+      "max_delta": 116.36896927209506,
+      "avg_gamma": 87.35180328577427,
+      "pct_time_hedged": 97.05093833780161
+    },
+    "pnl": {
+      "realized_pnl": 0.0,
+      "unrealized_pnl": 0.0,
+      "total_pnl": 0.0,
+      "max_drawdown": 0.0
+    },
+    "total_costs": 0.0,
+    "net_pnl_after_costs": 0.0
+  },
+  "trades": [
+    {
+      "timestamp": "2026-01-14T09:37:04.539409",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 35,
+      "price": 690.83,
+      "slippage_bps": 0.07237723012333734,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T09:40:06.062098",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 34,
+      "price": 690.46,
+      "slippage_bps": 0.5069341347732463,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T09:41:06.892943",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 34,
+      "price": 690.8,
+      "slippage_bps": -0.6513762131892502,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T09:42:07.709837",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 57,
+      "price": 690.11,
+      "slippage_bps": -0.7969108836285523,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T09:43:08.541930",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 21,
+      "price": 689.96,
+      "slippage_bps": 0.36235297528159827,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T09:46:09.969579",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 49,
+      "price": 689.34,
+      "slippage_bps": -0.2175947080965012,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T09:47:10.810556",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 42,
+      "price": 689.95,
+      "slippage_bps": 1.0871534698321503,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T09:49:11.930912",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 39,
+      "price": 690.33,
+      "slippage_bps": 0.21729210577759947,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T09:50:12.764042",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 32,
+      "price": 689.92,
+      "slippage_bps": -0.21741178516797027,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T09:51:13.598743",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 11,
+      "price": 689.82,
+      "slippage_bps": 0.07248320201786641,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T09:53:14.768933",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 13,
+      "price": 689.63,
+      "slippage_bps": -0.5074927682275913,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T09:56:19.188547",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 37,
+      "price": 689.25,
+      "slippage_bps": 0.36272625049841867,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T09:57:20.397122",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 23,
+      "price": 689.5,
+      "slippage_bps": -0.21754421586167608,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T09:59:26.073349",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 20,
+      "price": 688.93,
+      "slippage_bps": -0.3628684021465981,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T10:00:26.902274",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 55,
+      "price": 688.32,
+      "slippage_bps": 0.21792664589079486,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T10:01:27.767156",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 19,
+      "price": 688.16,
+      "slippage_bps": 1.0173087822804623,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T10:04:29.365174",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 16,
+      "price": 688.24,
+      "slippage_bps": -0.8717129158789109,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T10:05:30.195810",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 26,
+      "price": 688.56,
+      "slippage_bps": -0.7261004051650166,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T10:07:31.486428",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 12,
+      "price": 688.49,
+      "slippage_bps": 0.5810153242786493,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T10:10:33.196867",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 23,
+      "price": 688.74,
+      "slippage_bps": 0.0,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T10:12:34.435443",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 100,
+      "price": 690.11,
+      "slippage_bps": 0.6521124821568848,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T10:13:35.376207",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 30,
+      "price": 690.25,
+      "slippage_bps": 0.28975848630140405,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T10:14:36.267316",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 16,
+      "price": 690.38,
+      "slippage_bps": -0.43452441302954353,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T10:16:37.658533",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 20,
+      "price": 690.22,
+      "slippage_bps": 0.6520085485575797,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T10:18:38.917402",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 15,
+      "price": 690.34,
+      "slippage_bps": -0.14485405953488673,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T10:19:39.873063",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 18,
+      "price": 690.14,
+      "slippage_bps": 0.07244959319546831,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T10:20:40.800751",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 20,
+      "price": 689.87,
+      "slippage_bps": -0.5797857691577687,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T10:22:42.254395",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 28,
+      "price": 690.22,
+      "slippage_bps": -0.3621902367996474,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T10:23:43.088691",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 34,
+      "price": 689.82,
+      "slippage_bps": -0.2174433016588946,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T10:25:44.379078",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 15,
+      "price": 689.7,
+      "slippage_bps": 0.43499064770232726,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T10:26:45.251368",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 26,
+      "price": 689.96,
+      "slippage_bps": -0.28986347430333936,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T10:27:46.088824",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 23,
+      "price": 689.72,
+      "slippage_bps": 0.28998115122490664,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T10:28:47.033672",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 67,
+      "price": 688.94,
+      "slippage_bps": 0.21773052219182124,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T10:29:47.841712",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 16,
+      "price": 688.76,
+      "slippage_bps": 0.07259475430298803,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T10:30:48.696225",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 36,
+      "price": 688.31,
+      "slippage_bps": -0.21792031380670532,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T10:31:49.529188",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 13,
+      "price": 688.21,
+      "slippage_bps": 0.3632744102253166,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T10:36:51.616600",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 14,
+      "price": 688.35,
+      "slippage_bps": -0.1452728223602607,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T10:39:53.113645",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 24,
+      "price": 688.63,
+      "slippage_bps": -0.21781905045395464,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T10:40:53.974393",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 30,
+      "price": 689.0,
+      "slippage_bps": 0.07256946712233692,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T10:41:54.945795",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 26,
+      "price": 688.7,
+      "slippage_bps": 0.3630159364009286,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T10:43:56.209658",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 72,
+      "price": 687.82,
+      "slippage_bps": 0.07269396567384329,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T10:46:57.834736",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 43,
+      "price": 687.3,
+      "slippage_bps": -0.21824054472985518,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T10:47:58.721706",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 18,
+      "price": 687.12,
+      "slippage_bps": 0.2183072456172835,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T11:12:01.871814",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 34,
+      "price": 687.29,
+      "slippage_bps": -0.07274896514590463,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T11:13:02.688975",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 21,
+      "price": 687.54,
+      "slippage_bps": 0.072723570436348,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T11:15:03.827805",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 10,
+      "price": 687.41,
+      "slippage_bps": 0.07273732370284552,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T11:17:04.935457",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 17,
+      "price": 687.62,
+      "slippage_bps": -0.07271405199048105,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T11:18:05.749724",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 13,
+      "price": 687.48,
+      "slippage_bps": 0.2181929261851346,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T11:20:06.845688",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 25,
+      "price": 687.75,
+      "slippage_bps": -0.3634909672491332,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T11:21:07.721442",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 12,
+      "price": 687.89,
+      "slippage_bps": -0.3634169919245439,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T11:22:08.583265",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 26,
+      "price": 688.22,
+      "slippage_bps": -0.0726506593046671,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T11:23:09.439039",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 16,
+      "price": 688.4,
+      "slippage_bps": -0.07263166304712274,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T11:24:10.303959",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 34,
+      "price": 688.8,
+      "slippage_bps": -0.07258948468718218,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T11:27:11.820519",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 11,
+      "price": 688.95,
+      "slippage_bps": 0.3628842036519353,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T11:28:12.725866",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 25,
+      "price": 689.21,
+      "slippage_bps": 0.07254735528609706,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T11:30:13.931357",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 12,
+      "price": 689.32,
+      "slippage_bps": -0.3626631077323729,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T11:32:15.122978",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 24,
+      "price": 689.05,
+      "slippage_bps": -0.07256314807955029,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T11:33:16.003524",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 26,
+      "price": 688.8,
+      "slippage_bps": 0.5807538184558282,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T11:35:17.190203",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 18,
+      "price": 688.48,
+      "slippage_bps": -1.0892376062904459,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T11:36:18.067337",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 38,
+      "price": 688.1,
+      "slippage_bps": -0.07266332899768861,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T11:38:19.281120",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 22,
+      "price": 688.38,
+      "slippage_bps": -0.21789815440243404,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T11:39:20.163193",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 12,
+      "price": 688.26,
+      "slippage_bps": 0.2179456443560993,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T11:41:21.356506",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 11,
+      "price": 688.12,
+      "slippage_bps": 0.07266227302115856,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T11:42:22.218134",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 21,
+      "price": 687.87,
+      "slippage_bps": 0.07268868164531489,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T11:43:23.080463",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 15,
+      "price": 687.7,
+      "slippage_bps": 0.07270665047725303,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T11:45:24.287643",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 30,
+      "price": 687.33,
+      "slippage_bps": -0.07274473146275763,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T11:46:25.163175",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 19,
+      "price": 687.11,
+      "slippage_bps": 0.07276908187242784,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T11:48:26.361445",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 15,
+      "price": 686.94,
+      "slippage_bps": 0.07278709048322098,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T11:50:27.566745",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 14,
+      "price": 686.74,
+      "slippage_bps": -0.21841850441549546,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T11:51:28.416593",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 35,
+      "price": 686.31,
+      "slippage_bps": -0.07285284454090525,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T11:55:30.085223",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 10,
+      "price": 686.2,
+      "slippage_bps": -0.07286452299233397,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T11:56:30.901043",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 14,
+      "price": 686.38,
+      "slippage_bps": -0.21853306040962356,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T11:59:32.511222",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 16,
+      "price": 686.59,
+      "slippage_bps": -0.0728231344532869,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T12:00:33.356970",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 15,
+      "price": 686.43,
+      "slippage_bps": 0.5099104742891217,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T12:01:34.212687",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 16,
+      "price": 686.61,
+      "slippage_bps": -0.07282101323151188,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T12:02:35.072879",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 22,
+      "price": 686.88,
+      "slippage_bps": -0.07279238882775796,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T12:04:36.285329",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 21,
+      "price": 686.62,
+      "slippage_bps": 0.21846622148085665,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T12:07:37.816285",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 30,
+      "price": 687.0,
+      "slippage_bps": -0.07277967409255322,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T12:09:39.007093",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 24,
+      "price": 687.29,
+      "slippage_bps": -0.07274896514590463,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T12:12:40.541809",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 12,
+      "price": 687.15,
+      "slippage_bps": 0.21829771442273146,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T12:13:41.400053",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 12,
+      "price": 687.29,
+      "slippage_bps": -0.07274896514590463,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T12:15:42.609990",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 30,
+      "price": 686.9,
+      "slippage_bps": -0.07279026939672084,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T12:17:43.745491",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 17,
+      "price": 686.72,
+      "slippage_bps": 0.072810408976001,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T12:18:44.571101",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 18,
+      "price": 686.48,
+      "slippage_bps": -0.07283480338238203,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T12:19:45.390546",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 12,
+      "price": 686.66,
+      "slippage_bps": 0.0,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T12:21:46.539046",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 19,
+      "price": 686.42,
+      "slippage_bps": 0.21852987667610752,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T12:23:47.638729",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 19,
+      "price": 686.63,
+      "slippage_bps": -0.5097099750237477,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T12:24:48.581385",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 12,
+      "price": 686.81,
+      "slippage_bps": 0.0728008677862778,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T12:26:49.798819",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 24,
+      "price": 687.08,
+      "slippage_bps": -0.36384540936213916,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T12:28:51.069723",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 12,
+      "price": 687.25,
+      "slippage_bps": 0.07275425794287994,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T12:29:51.949129",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 16,
+      "price": 687.06,
+      "slippage_bps": 0.36388248051376226,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T12:30:52.822015",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 20,
+      "price": 686.83,
+      "slippage_bps": 0.5096134945665279,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T12:31:53.699519",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 10,
+      "price": 686.63,
+      "slippage_bps": -0.6553318527681811,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T12:32:54.586489",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 23,
+      "price": 686.41,
+      "slippage_bps": 0.21853306040962356,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T12:35:56.101967",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 12,
+      "price": 686.56,
+      "slippage_bps": -0.07282631651932649,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T12:41:58.763614",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 13,
+      "price": 686.73,
+      "slippage_bps": 0.07280934872030947,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T12:45:00.306949",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 16,
+      "price": 686.91,
+      "slippage_bps": -0.21836445026729787,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T12:46:01.458731",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 23,
+      "price": 687.2,
+      "slippage_bps": -0.07275849273499832,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T12:47:02.340682",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 13,
+      "price": 687.35,
+      "slippage_bps": -0.07274261480596565,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T12:48:03.217731",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 10,
+      "price": 687.21,
+      "slippage_bps": -0.21826912583195252,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T12:49:04.083336",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 10,
+      "price": 687.37,
+      "slippage_bps": 0.07274155652376034,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T12:50:04.977401",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 20,
+      "price": 687.12,
+      "slippage_bps": 0.2183072456172835,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T12:51:05.859271",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 60,
+      "price": 686.36,
+      "slippage_bps": 0.07284859875713665,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T12:55:07.892085",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 13,
+      "price": 686.56,
+      "slippage_bps": -0.07282631651932649,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T13:02:46.981974",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 36,
+      "price": 687.0,
+      "slippage_bps": -0.21833584419534302,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T13:05:48.786014",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 10,
+      "price": 687.12,
+      "slippage_bps": -0.07276696379836933,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T13:11:52.550617",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 10,
+      "price": 686.99,
+      "slippage_bps": -0.07278073348416586,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T13:13:53.992993",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 17,
+      "price": 687.23,
+      "slippage_bps": 0.21827230197225553,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T13:18:56.007145",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 11,
+      "price": 687.13,
+      "slippage_bps": 0.8004948513619324,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T13:20:57.595271",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 21,
+      "price": 687.36,
+      "slippage_bps": 0.21823101935689296,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T13:23:59.089800",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 13,
+      "price": 687.19,
+      "slippage_bps": 0.21828500745952698,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T13:26:00.623043",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 12,
+      "price": 687.03,
+      "slippage_bps": -0.07277649610275244,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T13:27:01.455276",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 19,
+      "price": 687.26,
+      "slippage_bps": -0.21825324651684347,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T13:28:02.294262",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 19,
+      "price": 687.5,
+      "slippage_bps": -0.07272674380543345,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T13:30:03.669446",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 15,
+      "price": 687.64,
+      "slippage_bps": -0.5089613552909175,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T13:32:04.802404",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 35,
+      "price": 687.22,
+      "slippage_bps": -0.36377128971439965,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T13:33:05.662847",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 31,
+      "price": 686.88,
+      "slippage_bps": 0.07279344858956073,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T13:36:07.100182",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 22,
+      "price": 686.64,
+      "slippage_bps": 0.3641050661575594,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T13:38:08.261798",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 21,
+      "price": 686.37,
+      "slippage_bps": 0.0728475373889323,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T13:40:09.430588",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 10,
+      "price": 686.5,
+      "slippage_bps": -0.21849486172896962,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T13:42:10.634456",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 14,
+      "price": 686.68,
+      "slippage_bps": -0.07281358992835803,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T13:43:11.515271",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 14,
+      "price": 686.84,
+      "slippage_bps": -0.21838670461722426,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T13:46:12.965614",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 16,
+      "price": 687.05,
+      "slippage_bps": -0.07277437759706941,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T13:47:13.818754",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 12,
+      "price": 687.19,
+      "slippage_bps": -0.0727595515100583,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T13:49:15.013809",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 27,
+      "price": 686.85,
+      "slippage_bps": 0.07279662806012203,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T14:03:10.803220",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 100,
+      "price": 688.08,
+      "slippage_bps": -0.21799315501473426,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T14:05:11.999862",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 29,
+      "price": 687.72,
+      "slippage_bps": 0.3635332523862651,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T14:07:13.140849",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 12,
+      "price": 687.85,
+      "slippage_bps": -0.07268973838956543,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T14:15:16.143315",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 13,
+      "price": 687.98,
+      "slippage_bps": -0.3633694522565572,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T14:18:17.698361",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 14,
+      "price": 687.89,
+      "slippage_bps": 0.7996103716727119,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T14:19:18.571353",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 20,
+      "price": 688.07,
+      "slippage_bps": -0.21799632312848496,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T14:20:19.432600",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 11,
+      "price": 688.19,
+      "slippage_bps": -0.21795831184002376,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T14:21:20.317976",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 17,
+      "price": 688.01,
+      "slippage_bps": 0.2180248402966062,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T14:22:21.192173",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 11,
+      "price": 688.13,
+      "slippage_bps": -0.07266016116017138,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T14:24:22.437187",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 10,
+      "price": 688.25,
+      "slippage_bps": -0.07264749257172781,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T14:25:23.293300",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 20,
+      "price": 688.02,
+      "slippage_bps": 0.07267283416779362,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T14:30:25.510358",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 21,
+      "price": 688.28,
+      "slippage_bps": 0.07264538156980062,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T14:34:27.430879",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 24,
+      "price": 687.99,
+      "slippage_bps": 0.07267600311046683,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T14:39:29.640901",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 11,
+      "price": 688.12,
+      "slippage_bps": -0.07266121707531993,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T14:40:30.511531",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 11,
+      "price": 688.23,
+      "slippage_bps": -0.36323746285863906,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T14:44:32.447643",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 16,
+      "price": 688.07,
+      "slippage_bps": 0.07266755321074973,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T14:48:34.348743",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 16,
+      "price": 688.26,
+      "slippage_bps": -0.07264643705542854,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T14:50:35.608260",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 27,
+      "price": 688.56,
+      "slippage_bps": -0.07261478582427423,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T14:51:36.465734",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 15,
+      "price": 688.41,
+      "slippage_bps": 0.363168866259103,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T14:54:38.056661",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 12,
+      "price": 688.27,
+      "slippage_bps": 0.36324274059349887,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T14:56:39.232259",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 15,
+      "price": 688.09,
+      "slippage_bps": 0.07266544104282832,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T14:57:40.106519",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 15,
+      "price": 688.26,
+      "slippage_bps": -0.07264643705542854,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T14:58:41.004788",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 12,
+      "price": 688.13,
+      "slippage_bps": 0.21798681906347567,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:00:42.210353",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 28,
+      "price": 687.8,
+      "slippage_bps": -0.07269502257173839,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:01:43.070495",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 40,
+      "price": 687.34,
+      "slippage_bps": 0.07274473146275763,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:02:43.932947",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 72,
+      "price": 688.19,
+      "slippage_bps": -0.3632585747183258,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:04:45.137866",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 21,
+      "price": 688.4,
+      "slippage_bps": -0.2178918239722603,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:05:46.004390",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 49,
+      "price": 688.97,
+      "slippage_bps": -0.07257157371451,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:06:46.869287",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 38,
+      "price": 689.35,
+      "slippage_bps": -0.3626473254756448,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:09:48.449455",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 13,
+      "price": 689.22,
+      "slippage_bps": 0.07254630267761805,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:11:49.626324",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 14,
+      "price": 689.36,
+      "slippage_bps": -0.2175883952853869,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:12:50.513479",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 44,
+      "price": 688.86,
+      "slippage_bps": -0.21774632553055862,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:15:52.003791",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 40,
+      "price": 688.45,
+      "slippage_bps": 0.07262744300554805,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:19:53.901820",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 15,
+      "price": 688.64,
+      "slippage_bps": 0.07260740450304519,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:23:55.778078",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 23,
+      "price": 688.87,
+      "slippage_bps": -0.2177431646789574,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:29:58.405651",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 22,
+      "price": 689.12,
+      "slippage_bps": -0.07255577725369784,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:30:59.281664",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 31,
+      "price": 689.47,
+      "slippage_bps": 0.07251999738921414,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:33:00.533793",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 29,
+      "price": 689.8,
+      "slippage_bps": 0.36243702656630444,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:34:01.397660",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 28,
+      "price": 690.06,
+      "slippage_bps": -0.07245694246352356,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:35:02.263998",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 11,
+      "price": 690.01,
+      "slippage_bps": 1.0870589258414993,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:36:03.137457",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 23,
+      "price": 690.19,
+      "slippage_bps": -0.07244329501076438,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:37:03.995224",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 13,
+      "price": 690.27,
+      "slippage_bps": -0.7967261796988905,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:38:04.873115",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 36,
+      "price": 689.93,
+      "slippage_bps": 0.07247164546864446,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:39:05.736358",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 10,
+      "price": 690.04,
+      "slippage_bps": -0.21737397743638348,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:40:06.605221",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 12,
+      "price": 690.18,
+      "slippage_bps": -0.07244434463217041,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:42:07.820534",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 17,
+      "price": 689.99,
+      "slippage_bps": 0.07246534344942937,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:43:08.700276",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 27,
+      "price": 689.74,
+      "slippage_bps": 0.6524623203004091,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:44:09.578804",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 19,
+      "price": 689.51,
+      "slippage_bps": 0.07251579031327478,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:45:10.442173",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 35,
+      "price": 689.14,
+      "slippage_bps": 0.21766733176109354,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:46:11.310649",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 20,
+      "price": 688.92,
+      "slippage_bps": 0.07257789422491095,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:47:12.175135",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 11,
+      "price": 689.0,
+      "slippage_bps": -0.6530778105923281,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:49:13.420921",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 26,
+      "price": 688.75,
+      "slippage_bps": -0.07259475430298803,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:50:14.290137",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 28,
+      "price": 689.14,
+      "slippage_bps": 0.9432935456944582,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:53:15.834908",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 12,
+      "price": 689.19,
+      "slippage_bps": -0.21764206585829118,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:54:17.010214",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 19,
+      "price": 689.43,
+      "slippage_bps": 0.36263154459247127,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:55:17.885231",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 46,
+      "price": 689.9,
+      "slippage_bps": -0.07247374638530599,
+      "commission": 0.0
+    },
+    {
+      "timestamp": "2026-01-14T15:57:19.106524",
+      "symbol": "SPY",
+      "side": "SELL",
+      "quantity": 22,
+      "price": 690.12,
+      "slippage_bps": -0.07245064299939073,
+      "commission": 0.0
+    }
+  ],
+  "greeks_history": [
+    {
+      "timestamp": "2026-01-14T14:51:35.912883",
+      "spot_price": 688.385,
+      "delta": -228.22454114383646,
+      "gamma": 90.36811274573185,
+      "net_delta": -15.224541143836461
+    },
+    {
+      "timestamp": "2026-01-14T14:52:36.816088",
+      "spot_price": 688.415,
+      "delta": -225.57530328181866,
+      "gamma": 90.47749320511596,
+      "net_delta": 2.4246967181813375
+    },
+    {
+      "timestamp": "2026-01-14T14:53:37.163532",
+      "spot_price": 688.33,
+      "delta": -233.31958147882648,
+      "gamma": 90.24459449673311,
+      "net_delta": -5.319581478826478
+    },
+    {
+      "timestamp": "2026-01-14T14:54:37.496052",
+      "spot_price": 688.245,
+      "delta": -241.04548045003037,
+      "gamma": 90.00289729262474,
+      "net_delta": -13.045480450030368
+    },
+    {
+      "timestamp": "2026-01-14T14:55:38.376519",
+      "spot_price": 688.185,
+      "delta": -246.5079940898707,
+      "gamma": 89.83315183674719,
+      "net_delta": -6.507994089870692
+    },
+    {
+      "timestamp": "2026-01-14T14:56:38.679979",
+      "spot_price": 688.085,
+      "delta": -255.54457018650317,
+      "gamma": 89.52678793686897,
+      "net_delta": -15.544570186503165
+    },
+    {
+      "timestamp": "2026-01-14T14:57:39.554008",
+      "spot_price": 688.265,
+      "delta": -239.4435016437423,
+      "gamma": 90.12711166453465,
+      "net_delta": 15.556498356257691
+    },
+    {
+      "timestamp": "2026-01-14T14:58:40.449437",
+      "spot_price": 688.115,
+      "delta": -252.99646916939042,
+      "gamma": 89.66655295560385,
+      "net_delta": -12.996469169390423
+    },
+    {
+      "timestamp": "2026-01-14T14:59:41.339694",
+      "spot_price": 688.035,
+      "delta": -260.23042270999287,
+      "gamma": 89.41946503590214,
+      "net_delta": -8.230422709992865
+    },
+    {
+      "timestamp": "2026-01-14T15:00:41.658397",
+      "spot_price": 687.805,
+      "delta": -280.780215377874,
+      "gamma": 88.62994315886083,
+      "net_delta": -28.780215377874015
+    },
+    {
+      "timestamp": "2026-01-14T15:01:42.516081",
+      "spot_price": 687.335,
+      "delta": -322.09949415707274,
+      "gamma": 86.814973191714,
+      "net_delta": -42.09949415707274
+    },
+    {
+      "timestamp": "2026-01-14T15:02:43.377512",
+      "spot_price": 688.215,
+      "delta": -244.28364844342502,
+      "gamma": 90.07240144879125,
+      "net_delta": 75.71635155657498
+    },
+    {
+      "timestamp": "2026-01-14T15:03:44.279268",
+      "spot_price": 688.265,
+      "delta": -239.84284753221476,
+      "gamma": 90.25118522107226,
+      "net_delta": 8.157152467785238
+    },
+    {
+      "timestamp": "2026-01-14T15:04:44.583987",
+      "spot_price": 688.415,
+      "delta": -226.33367871559688,
+      "gamma": 90.72909813411334,
+      "net_delta": 21.666321284403125
+    },
+    {
+      "timestamp": "2026-01-14T15:05:45.451028",
+      "spot_price": 688.975,
+      "delta": -175.14772694576595,
+      "gamma": 92.22086288851068,
+      "net_delta": 51.85227305423405
+    },
+    {
+      "timestamp": "2026-01-14T15:06:46.316160",
+      "spot_price": 689.375,
+      "delta": -138.13249339634456,
+      "gamma": 93.05725211306292,
+      "net_delta": 39.86750660365544
+    },
+    {
+      "timestamp": "2026-01-14T15:07:47.262963",
+      "spot_price": 689.395,
+      "delta": -136.31304070061213,
+      "gamma": 93.11572611595759,
+      "net_delta": 3.6869592993878655
+    },
+    {
+      "timestamp": "2026-01-14T15:08:47.591399",
+      "spot_price": 689.385,
+      "delta": -137.28610477578513,
+      "gamma": 93.12098948789769,
+      "net_delta": 2.713895224214866
+    },
+    {
+      "timestamp": "2026-01-14T15:09:47.897549",
+      "spot_price": 689.215,
+      "delta": -153.13585827354126,
+      "gamma": 92.82388032121469,
+      "net_delta": -13.13585827354126
+    },
+    {
+      "timestamp": "2026-01-14T15:10:48.759356",
+      "spot_price": 689.105,
+      "delta": -163.38294877449772,
+      "gamma": 92.61997687485936,
+      "net_delta": -10.38294877449772
+    },
+    {
+      "timestamp": "2026-01-14T15:11:49.073151",
+      "spot_price": 689.375,
+      "delta": -138.34428485352726,
+      "gamma": 93.1721011029194,
+      "net_delta": 14.655715146472744
+    },
+    {
+      "timestamp": "2026-01-14T15:12:49.941734",
+      "spot_price": 688.875,
+      "delta": -184.73417579956634,
+      "gamma": 92.14116036049538,
+      "net_delta": -45.734175799566344
+    },
+    {
+      "timestamp": "2026-01-14T15:13:50.816236",
+      "spot_price": 689.005,
+      "delta": -172.7869915916345,
+      "gamma": 92.46796592996091,
+      "net_delta": 10.21300840836551
+    },
+    {
+      "timestamp": "2026-01-14T15:14:51.127880",
+      "spot_price": 688.785,
+      "delta": -193.12859212038745,
+      "gamma": 91.9622317943423,
+      "net_delta": -10.128592120387452
+    },
+    {
+      "timestamp": "2026-01-14T15:15:51.448856",
+      "spot_price": 688.445,
+      "delta": -224.3041074792426,
+      "gamma": 91.05054626928344,
+      "net_delta": -41.30410747924259
+    },
+    {
+      "timestamp": "2026-01-14T15:16:52.332767",
+      "spot_price": 688.415,
+      "delta": -227.09850418721516,
+      "gamma": 90.98276924639868,
+      "net_delta": -4.0985041872151555
+    },
+    {
+      "timestamp": "2026-01-14T15:17:52.661726",
+      "spot_price": 688.455,
+      "delta": -223.51966611415463,
+      "gamma": 91.12260767507968,
+      "net_delta": -0.5196661141546315
+    },
+    {
+      "timestamp": "2026-01-14T15:18:52.984748",
+      "spot_price": 688.545,
+      "delta": -215.36783994802676,
+      "gamma": 91.40414553025497,
+      "net_delta": 7.632160051973244
+    },
+    {
+      "timestamp": "2026-01-14T15:19:53.344397",
+      "spot_price": 688.635,
+      "delta": -207.1892287218833,
+      "gamma": 91.67632784055164,
+      "net_delta": 15.810771278116704
+    },
+    {
+      "timestamp": "2026-01-14T15:20:54.239421",
+      "spot_price": 688.515,
+      "delta": -218.23268044702303,
+      "gamma": 91.36147284417984,
+      "net_delta": -10.232680447023029
+    },
+    {
+      "timestamp": "2026-01-14T15:21:54.571209",
+      "spot_price": 688.555,
+      "delta": -214.63681618172927,
+      "gamma": 91.4971688299591,
+      "net_delta": -6.636816181729273
+    },
+    {
+      "timestamp": "2026-01-14T15:22:54.901413",
+      "spot_price": 688.725,
+      "delta": -199.09960750107103,
+      "gamma": 91.98303743048572,
+      "net_delta": 8.900392498928966
+    },
+    {
+      "timestamp": "2026-01-14T15:23:55.226099",
+      "spot_price": 688.885,
+      "delta": -184.4032999568202,
+      "gamma": 92.40981756797319,
+      "net_delta": 23.596700043179794
+    },
+    {
+      "timestamp": "2026-01-14T15:24:56.115251",
+      "spot_price": 688.945,
+      "delta": -178.90728806602118,
+      "gamma": 92.57600078636712,
+      "net_delta": 6.092711933978819
+    },
+    {
+      "timestamp": "2026-01-14T15:25:56.533842",
+      "spot_price": 688.835,
+      "delta": -189.13106343129567,
+      "gamma": 92.33126098989968,
+      "net_delta": -4.131063431295672
+    },
+    {
+      "timestamp": "2026-01-14T15:26:56.859201",
+      "spot_price": 688.955,
+      "delta": -178.08607279055389,
+      "gamma": 92.64441586766404,
+      "net_delta": 6.913927209446115
+    },
+    {
+      "timestamp": "2026-01-14T15:27:57.215330",
+      "spot_price": 688.945,
+      "delta": -179.06499120997995,
+      "gamma": 92.64330790766016,
+      "net_delta": 5.935008790020049
+    },
+    {
+      "timestamp": "2026-01-14T15:28:57.547494",
+      "spot_price": 688.935,
+      "delta": -180.04413993825727,
+      "gamma": 92.64204250593507,
+      "net_delta": 4.955860061742726
+    },
+    {
+      "timestamp": "2026-01-14T15:29:57.853789",
+      "spot_price": 689.125,
+      "delta": -162.4492319780091,
+      "gamma": 93.09389641756346,
+      "net_delta": 22.550768021990905
+    },
+    {
+      "timestamp": "2026-01-14T15:30:58.728782",
+      "spot_price": 689.465,
+      "delta": -130.72317000864876,
+      "gamma": 93.77061160757972,
+      "net_delta": 32.276829991351235
+    },
+    {
+      "timestamp": "2026-01-14T15:31:59.666037",
+      "spot_price": 689.535,
+      "delta": -124.19461246977835,
+      "gamma": 93.91030599073109,
+      "net_delta": 7.805387530221651
+    },
+    {
+      "timestamp": "2026-01-14T15:32:59.982483",
+      "spot_price": 689.775,
+      "delta": -101.64622611894663,
+      "gamma": 94.28339137328004,
+      "net_delta": 30.35377388105337
+    },
+    {
+      "timestamp": "2026-01-14T15:34:00.846311",
+      "spot_price": 690.065,
+      "delta": -74.28161605338914,
+      "gamma": 94.62846261259357,
+      "net_delta": 28.718383946610857
+    },
+    {
+      "timestamp": "2026-01-14T15:35:01.710555",
+      "spot_price": 689.935,
+      "delta": -86.60506418005127,
+      "gamma": 94.52264568229594,
+      "net_delta": -11.605064180051272
+    },
+    {
+      "timestamp": "2026-01-14T15:36:02.586810",
+      "spot_price": 690.195,
+      "delta": -62.019945145148654,
+      "gamma": 94.78496259704565,
+      "net_delta": 23.980054854851346
+    },
+    {
+      "timestamp": "2026-01-14T15:37:03.444025",
+      "spot_price": 690.325,
+      "delta": -49.712583087044266,
+      "gamma": 94.89462955563093,
+      "net_delta": 13.287416912955734
+    },
+    {
+      "timestamp": "2026-01-14T15:38:04.318451",
+      "spot_price": 689.925,
+      "delta": -87.64097402907117,
+      "gamma": 94.58454497293911,
+      "net_delta": -37.640974029071174
+    },
+    {
+      "timestamp": "2026-01-14T15:39:05.184116",
+      "spot_price": 690.055,
+      "delta": -75.36325783099511,
+      "gamma": 94.74129888387004,
+      "net_delta": 10.63674216900489
+    },
+    {
+      "timestamp": "2026-01-14T15:40:06.051482",
+      "spot_price": 690.185,
+      "delta": -63.063455831447925,
+      "gamma": 94.87565895107565,
+      "net_delta": 12.936544168552075
+    },
+    {
+      "timestamp": "2026-01-14T15:41:06.932275",
+      "spot_price": 690.185,
+      "delta": -63.087423522609186,
+      "gamma": 94.90025254438886,
+      "net_delta": 0.9125764773908145
+    },
+    {
+      "timestamp": "2026-01-14T15:42:07.256329",
+      "spot_price": 689.985,
+      "delta": -82.07913964490399,
+      "gamma": 94.74583371228269,
+      "net_delta": -18.07913964490399
+    },
+    {
+      "timestamp": "2026-01-14T15:43:08.143738",
+      "spot_price": 689.695,
+      "delta": -109.54272281267794,
+      "gamma": 94.41553949847633,
+      "net_delta": -28.542722812677937
+    },
+    {
+      "timestamp": "2026-01-14T15:44:09.026141",
+      "spot_price": 689.505,
+      "delta": -127.49514418375361,
+      "gamma": 94.1463601882277,
+      "net_delta": -19.49514418375361
+    },
+    {
+      "timestamp": "2026-01-14T15:45:09.888229",
+      "spot_price": 689.125,
+      "delta": -163.1877723721509,
+      "gamma": 93.44073932435502,
+      "net_delta": -36.1877723721509
+    },
+    {
+      "timestamp": "2026-01-14T15:46:10.757814",
+      "spot_price": 688.915,
+      "delta": -182.8149936412969,
+      "gamma": 92.98026836308479,
+      "net_delta": -20.814993641296894
+    },
+    {
+      "timestamp": "2026-01-14T15:47:11.623308",
+      "spot_price": 689.045,
+      "delta": -170.75889813620756,
+      "gamma": 93.30955723242886,
+      "net_delta": 11.241101863792437
+    },
+    {
+      "timestamp": "2026-01-14T15:48:12.550390",
+      "spot_price": 688.995,
+      "delta": -175.47419348579683,
+      "gamma": 93.21735017490995,
+      "net_delta": -4.474193485796832
+    },
+    {
+      "timestamp": "2026-01-14T15:49:12.867448",
+      "spot_price": 688.755,
+      "delta": -197.83372510583888,
+      "gamma": 92.64152312436528,
+      "net_delta": -26.83372510583888
+    },
+    {
+      "timestamp": "2026-01-14T15:50:13.734499",
+      "spot_price": 689.075,
+      "delta": -168.11073490458352,
+      "gamma": 93.44672854104142,
+      "net_delta": 28.889265095416476
+    },
+    {
+      "timestamp": "2026-01-14T15:51:14.617522",
+      "spot_price": 689.145,
+      "delta": -161.6133439641195,
+      "gamma": 93.62382669396007,
+      "net_delta": 7.386656035880492
+    },
+    {
+      "timestamp": "2026-01-14T15:52:14.966227",
+      "spot_price": 689.045,
+      "delta": -171.0159675614471,
+      "gamma": 93.42518427904184,
+      "net_delta": -2.0159675614470984
+    },
+    {
+      "timestamp": "2026-01-14T15:53:15.280092",
+      "spot_price": 689.205,
+      "delta": -156.087126741494,
+      "gamma": 93.79729150940497,
+      "net_delta": 12.91287325850601
+    },
+    {
+      "timestamp": "2026-01-14T15:54:16.459293",
+      "spot_price": 689.405,
+      "delta": -137.33127542586078,
+      "gamma": 94.21062022833479,
+      "net_delta": 19.66872457413922
+    },
+    {
+      "timestamp": "2026-01-14T15:55:17.333911",
+      "spot_price": 689.905,
+      "delta": -90.05774186778893,
+      "gamma": 94.97711947154798,
+      "net_delta": 47.942258132211066
+    },
+    {
+      "timestamp": "2026-01-14T15:56:18.236511",
+      "spot_price": 689.875,
+      "delta": -92.93843424076226,
+      "gamma": 94.96662348817507,
+      "net_delta": -0.9384342407622626
+    },
+    {
+      "timestamp": "2026-01-14T15:57:18.554153",
+      "spot_price": 690.125,
+      "delta": -69.18858250937348,
+      "gamma": 95.24670374340747,
+      "net_delta": 22.811417490626525
+    },
+    {
+      "timestamp": "2026-01-14T15:58:19.452303",
+      "spot_price": 690.105,
+      "delta": -71.11958836346247,
+      "gamma": 95.25422438396959,
+      "net_delta": -1.1195883634624693
+    },
+    {
+      "timestamp": "2026-01-14T15:59:19.855137",
+      "spot_price": 690.125,
+      "delta": -69.23987882717222,
+      "gamma": 95.29625405401381,
+      "net_delta": 0.7601211728277804
+    },
+    {
+      "timestamp": "2026-01-14T16:00:20.171457",
+      "spot_price": 690.41,
+      "delta": -42.069517242821235,
+      "gamma": 95.50928534025059,
+      "net_delta": 27.930482757178765
+    },
+    {
+      "timestamp": "2026-01-14T16:01:20.483755",
+      "spot_price": 690.665,
+      "delta": -17.715433531071824,
+      "gamma": 95.608428438787,
+      "net_delta": 52.284566468928176
+    },
+    {
+      "timestamp": "2026-01-14T16:02:20.807116",
+      "spot_price": 690.4449999999999,
+      "delta": -38.76168253615697,
+      "gamma": 95.57460488562785,
+      "net_delta": 31.238317463843032
+    },
+    {
+      "timestamp": "2026-01-14T16:03:21.136909",
+      "spot_price": 690.485,
+      "delta": -34.955032989666904,
+      "gamma": 95.6152369854739,
+      "net_delta": 35.044967010333096
+    },
+    {
+      "timestamp": "2026-01-14T16:04:21.451852",
+      "spot_price": 690.565,
+      "delta": -27.31942850821042,
+      "gamma": 95.6650057891172,
+      "net_delta": 42.68057149178958
+    },
+    {
+      "timestamp": "2026-01-14T16:05:21.785074",
+      "spot_price": 690.375,
+      "delta": -45.50903678404302,
+      "gamma": 95.61676702162487,
+      "net_delta": 24.49096321595698
+    },
+    {
+      "timestamp": "2026-01-14T16:06:22.097500",
+      "spot_price": 690.29,
+      "delta": -53.65601125448876,
+      "gamma": 95.59281885897408,
+      "net_delta": 16.34398874551124
+    },
+    {
+      "timestamp": "2026-01-14T16:07:22.431996",
+      "spot_price": 690.3,
+      "delta": -52.72138108599819,
+      "gamma": 95.62405144103903,
+      "net_delta": 17.27861891400181
+    },
+    {
+      "timestamp": "2026-01-14T16:08:22.775821",
+      "spot_price": 690.12,
+      "delta": -69.94813681112254,
+      "gamma": 95.51483306210795,
+      "net_delta": 0.05186318887746211
+    },
+    {
+      "timestamp": "2026-01-14T16:09:23.103431",
+      "spot_price": 690.005,
+      "delta": -80.95495356188837,
+      "gamma": 95.43056266764688,
+      "net_delta": -10.954953561888374
+    },
+    {
+      "timestamp": "2026-01-14T16:10:23.420336",
+      "spot_price": 689.965,
+      "delta": -84.80104417152558,
+      "gamma": 95.41308123397178,
+      "net_delta": -14.801044171525575
+    },
+    {
+      "timestamp": "2026-01-14T16:11:23.736222",
+      "spot_price": 689.86,
+      "delta": -94.84549340494829,
+      "gamma": 95.31638580287803,
+      "net_delta": -24.845493404948286
+    },
+    {
+      "timestamp": "2026-01-14T16:12:24.048593",
+      "spot_price": 689.9200000000001,
+      "delta": -89.15520378238296,
+      "gamma": 95.41234154233148,
+      "net_delta": -19.155203782382955
+    },
+    {
+      "timestamp": "2026-01-14T16:13:24.405768",
+      "spot_price": 689.955,
+      "delta": -85.84511080611725,
+      "gamma": 95.47644984707875,
+      "net_delta": -15.845110806117248
+    },
+    {
+      "timestamp": "2026-01-14T16:14:24.727781",
+      "spot_price": 690.015,
+      "delta": -80.14314671294,
+      "gamma": 95.56486872767937,
+      "net_delta": -10.143146712939995
+    },
+    {
+      "timestamp": "2026-01-14T16:15:25.055770",
+      "spot_price": 690.045,
+      "delta": -77.30356232610058,
+      "gamma": 95.61971852826191,
+      "net_delta": -7.303562326100575
+    },
+    {
+      "timestamp": "2026-01-14T16:16:25.441065",
+      "spot_price": 690.045,
+      "delta": -77.3314338537453,
+      "gamma": 95.64466837986612,
+      "net_delta": -7.331433853745295
+    },
+    {
+      "timestamp": "2026-01-14T16:17:25.762686",
+      "spot_price": 689.9449999999999,
+      "delta": -86.92113025286113,
+      "gamma": 95.56465806994991,
+      "net_delta": -16.921130252861133
+    },
+    {
+      "timestamp": "2026-01-14T16:18:26.112328",
+      "spot_price": 690.025,
+      "delta": -79.3008794290339,
+      "gamma": 95.67467267198609,
+      "net_delta": -9.300879429033898
+    },
+    {
+      "timestamp": "2026-01-14T16:19:26.515259",
+      "spot_price": 689.965,
+      "delta": -85.06944432544742,
+      "gamma": 95.63658262596189,
+      "net_delta": -15.06944432544742
+    },
+    {
+      "timestamp": "2026-01-14T16:20:26.855629",
+      "spot_price": 689.9,
+      "delta": -91.31499945589758,
+      "gamma": 95.58748660194405,
+      "net_delta": -21.314999455897578
+    },
+    {
+      "timestamp": "2026-01-14T16:21:27.156705",
+      "spot_price": 689.86,
+      "delta": -95.17007884063412,
+      "gamma": 95.5638541194239,
+      "net_delta": -25.17007884063412
+    },
+    {
+      "timestamp": "2026-01-14T16:22:27.475628",
+      "spot_price": 689.8199999999999,
+      "delta": -99.025193795863,
+      "gamma": 95.53795296240824,
+      "net_delta": -29.025193795863004
+    },
+    {
+      "timestamp": "2026-01-14T16:23:27.808764",
+      "spot_price": 689.98,
+      "delta": -83.75308817431124,
+      "gamma": 95.75269228560475,
+      "net_delta": -13.753088174311245
+    },
+    {
+      "timestamp": "2026-01-14T16:24:28.123519",
+      "spot_price": 689.915,
+      "delta": -90.00592594274036,
+      "gamma": 95.70474324636373,
+      "net_delta": -20.00592594274036
+    },
+    {
+      "timestamp": "2026-01-14T16:25:28.475689",
+      "spot_price": 689.805,
+      "delta": -100.56011491906389,
+      "gamma": 95.59282581535277,
+      "net_delta": -30.560114919063892
+    },
+    {
+      "timestamp": "2026-01-14T16:26:28.799907",
+      "spot_price": 689.865,
+      "delta": -94.85476438540786,
+      "gamma": 95.69449454694984,
+      "net_delta": -24.85476438540786
+    },
+    {
+      "timestamp": "2026-01-14T16:27:29.141596",
+      "spot_price": 689.95,
+      "delta": -86.74685744014585,
+      "gamma": 95.8198470269697,
+      "net_delta": -16.746857440145845
+    },
+    {
+      "timestamp": "2026-01-14T16:28:29.449616",
+      "spot_price": 689.855,
+      "delta": -95.87731928580678,
+      "gamma": 95.73193248811933,
+      "net_delta": -25.877319285806777
+    },
+    {
+      "timestamp": "2026-01-14T16:29:29.796228",
+      "spot_price": 689.855,
+      "delta": -95.9102014372807,
+      "gamma": 95.75691690869421,
+      "net_delta": -25.910201437280705
+    },
+    {
+      "timestamp": "2026-01-14T16:30:30.111025",
+      "spot_price": 689.855,
+      "delta": -95.94309110138119,
+      "gamma": 95.7819082896125,
+      "net_delta": -25.943091101381185
+    },
+    {
+      "timestamp": "2026-01-14T16:31:30.433534",
+      "spot_price": 689.885,
+      "delta": -93.10124055707286,
+      "gamma": 95.84405284590076,
+      "net_delta": -23.101240557072856
+    }
+  ]
+}

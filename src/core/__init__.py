@@ -20,6 +20,12 @@ from .exceptions import (
     ConfigError,
     ControlError,
 )
+from .state_machine import (
+    TradingState,
+    StateEvent,
+    TradingStateMachine,
+    StateTransition,
+)
 
 __all__ = [
     # Types
@@ -38,5 +44,10 @@ __all__ = [
     "BrokerError",
     "ConfigError",
     "ControlError",
+    # State machine
+    "TradingState",
+    "StateEvent",
+    "TradingStateMachine",
+    "StateTransition",
 ]
 

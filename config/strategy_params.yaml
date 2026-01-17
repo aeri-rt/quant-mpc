@@ -16,13 +16,13 @@ gamma_scalping:
     strike_selection: "atm"    # atm, delta_neutral
     
     # Expiry selection
-    target_dte: 30             # Target days to expiration
-    min_dte: 21                # Minimum DTE for new positions
-    max_dte: 45                # Maximum DTE for new positions
+    target_dte: 7             # Target days to expiration
+    min_dte: 5                # Minimum DTE for new positions
+    max_dte: 14                # Maximum DTE for new positions
     
     # Roll parameters
-    roll_dte: 7                # Roll when DTE reaches this
-    roll_to_dte: 30            # Roll to this DTE
+    roll_dte: 2                # Roll when DTE reaches this
+    roll_to_dte: 14            # Roll to this DTE
   
   # Position sizing
   position_sizing:
@@ -47,7 +47,7 @@ gamma_scalping:
   # Exit conditions
   exit:
     take_profit: 0.20          # Close at 20% profit
-    stop_loss: -0.30           # Close at 30% loss
+    stop_loss: -0.20           # Close at 20% loss
     vol_collapse: 0.005        # Close if gamma drops below this
     
   # Delta hedging (MPC handles timing, these are constraints)
@@ -59,9 +59,9 @@ gamma_scalping:
 # Risk Management
 risk:
   # Position limits
-  max_contracts: 50            # Max option contracts
-  max_notional: 100000         # Max notional exposure ($)
-  max_loss_daily: 2000         # Max daily loss before shutdown
+  max_contracts: 500            # Max option contracts
+  max_notional: 1000000         # Max notional exposure ($)
+  max_loss_daily: 20000         # Max daily loss before shutdown
   
   # Greeks limits
   max_delta: 500               # Max portfolio delta (shares equiv)
@@ -74,7 +74,7 @@ risk:
 
 # Paper Trading Settings
 paper_trading:
-  initial_capital: 100000
+  initial_capital: 1000000
   simulate_slippage: true
   slippage_bps: 5              # 5 basis points slippage
   simulate_fill_delay: true

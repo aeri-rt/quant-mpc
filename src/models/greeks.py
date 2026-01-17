@@ -49,6 +49,7 @@ class OptionPosition:
         underlying_price: Current price of underlying
         iv: Implied volatility
         greeks: Calculated Greeks for this position
+        greeks_source: Source of Greeks data ("ibkr" or "calculated")
     """
     symbol: str
     position_type: PositionType
@@ -64,6 +65,52 @@ class OptionPosition:
     
     # Calculated Greeks (per contract, not per share)
     greeks: Optional[OptionGreeks] = None
+    greeks_source: str = "calculated"  # "ibkr" or "calculated"
+    
+    def set_ibkr_greeks(
+        self,
+        delta: float,
+        gamma: float,
+        vega: float,
+        theta: float,
+        iv: float = 0.0,
+    ) -> None:
+        """
+        Set Greeks from IBKR market data.
+        
+        IBKR provides model Greeks via TWS/Gateway which may be more accurate
+        than our Black-Scholes calculation, especially for:
+        - American options (early exercise)
+        - Dividend adjustments
+        - Interest rate environment
+        
+        Args:
+            delta: Delta (per contract)
+            gamma: Gamma (per contract)
+            vega: Vega (per contract)
+            theta: Theta (per contract)
+            iv: Implied volatility
+        """
+        # Only use IBKR Greeks if they're non-zero (valid)
+        if abs(delta) > 0 or abs(gamma) > 0:
+            self.greeks = OptionGreeks(
+                delta=delta,
+                gamma=gamma,
+                vega=vega,
+                theta=theta,
+                rho=0.0,  # IBKR doesn't typically provide rho
+            )
+            self.greeks_source = "ibkr"
+            if iv > 0:
+                self.iv = iv
+    
+    def has_valid_ibkr_greeks(self) -> bool:
+        """Check if position has valid IBKR-provided Greeks."""
+        return (
+            self.greeks is not None 
+            and self.greeks_source == "ibkr"
+            and (abs(self.greeks.delta) > 0 or abs(self.greeks.gamma) > 0)
+        )
     
     @property
     def is_call(self) -> bool:
@@ -208,7 +255,18 @@ class PortfolioGreeksCalculator:
         self.equity_positions = list(equities)
     
     def _calculate_option_greeks(self, pos: OptionPosition) -> OptionGreeks:
-        """Calculate Greeks for a single option position."""
+        """
+        Calculate Greeks for a single option position.
+        
+        Prefers IBKR-provided Greeks when available (more accurate for American options,
+        dividend adjustments, etc.). Falls back to Black-Scholes calculation when
+        IBKR Greeks are unavailable.
+        """
+        # Use IBKR Greeks if available and valid
+        if pos.has_valid_ibkr_greeks():
+            return pos.greeks
+        
+        # Fall back to Black-Scholes calculation
         S = pos.underlying_price
         K = pos.strike
         T = pos.time_to_expiry

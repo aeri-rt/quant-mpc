@@ -110,6 +110,25 @@ from .metrics import (
     reset_metrics_tracker,
 )
 
+from .helpers import (
+    # Constants
+    TRADING_DAYS_PER_YEAR,
+    TRADING_HOURS_PER_DAY,
+    TRADING_MINUTES_PER_YEAR,
+    TRADING_SECONDS_PER_YEAR,
+    
+    # Safe conversions
+    safe_int,
+    safe_float,
+    safe_price,
+    
+    # Time conversions
+    seconds_to_years,
+    minutes_to_years,
+    years_to_seconds,
+    years_to_minutes,
+)
+
 # Add to __all__
 __all__.extend([
     'MetricsTracker',
@@ -117,4 +136,19 @@ __all__.extend([
     'GreeksSnapshot',
     'get_metrics_tracker',
     'reset_metrics_tracker',
+    
+    # Helpers - Constants
+    'TRADING_DAYS_PER_YEAR',
+    'TRADING_HOURS_PER_DAY',
+    'TRADING_MINUTES_PER_YEAR',
+    'TRADING_SECONDS_PER_YEAR',
+    
+    # Helpers - Conversions
+    'safe_int',
+    'safe_float',
+    'safe_price',
+    'seconds_to_years',
+    'minutes_to_years',
+    'years_to_seconds',
+    'years_to_minutes',
 ])

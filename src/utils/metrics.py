@@ -130,8 +130,7 @@ class MetricsTracker:
         self._total_bought = 0
         self._total_sold = 0
         self._total_commission = 0.0
-        self._realized_pnl = 0.0
-        self._position_cost_basis = 0.0
+        # Note: P&L tracking delegated to IBKR for accuracy
         
         # For execution quality
         self._initial_position_value = 0.0
@@ -183,14 +182,12 @@ class MetricsTracker:
         # Update running totals
         if side == "BUY":
             self._total_bought += quantity
-            self._position_cost_basis += quantity * price
         else:
             self._total_sold += quantity
-            # Realize P&L (simplified - FIFO would be more accurate)
-            avg_cost = self._position_cost_basis / max(1, self._total_bought - self._total_sold + quantity)
-            self._realized_pnl += quantity * (price - avg_cost)
-            self._position_cost_basis -= quantity * avg_cost
         
+        # Note: Realized P&L calculation is complex with short positions
+        # IBKR tracks this accurately - we just track trade volume here
+        # P&L in session summary will show 0 (check IBKR for actual P&L)
         self._total_commission += commission
         
         logger.debug(
@@ -242,7 +239,6 @@ class MetricsTracker:
         )
         
         self._pnl_history.append(record)
-        self._realized_pnl = realized_pnl
     
     # -------------------------------------------------------------------------
     # Trade Metrics
@@ -290,6 +286,7 @@ class MetricsTracker:
                 "avg_delta": 0.0,
                 "max_abs_delta": 0.0,
                 "avg_gamma": 0.0,
+                "pct_time_hedged": 0.0,
             }
         
         deltas = [g.net_delta for g in self._greeks_history]
@@ -311,12 +308,12 @@ class MetricsTracker:
     # -------------------------------------------------------------------------
     
     def get_pnl_metrics(self) -> Dict:
-        """Get P&L metrics."""
+        """Get P&L metrics. Note: Actual P&L tracked by IBKR."""
         if not self._pnl_history:
             return {
-                "realized_pnl": self._realized_pnl,
+                "realized_pnl": 0.0,  # Check IBKR for actual P&L
                 "unrealized_pnl": 0.0,
-                "total_pnl": self._realized_pnl,
+                "total_pnl": 0.0,
                 "max_drawdown": 0.0,
             }
         
@@ -380,30 +377,16 @@ class MetricsTracker:
         """Log the session summary."""
         summary = self.get_session_summary()
         
-        logger.info(
-            "\n" + "="*60 + "\n"
-            f"SESSION SUMMARY: {summary['session_date']}\n"
-            f"Duration: {summary['duration_minutes']:.1f} minutes\n"
-            "="*60 + "\n"
-            f"\nTrades: {summary['trades']['n_trades']}\n"
-            f"  Volume: {summary['trades']['total_volume']} shares\n"
-            f"  Notional: ${summary['trades']['total_notional']:,.2f}\n"
-            f"  Avg Slippage: {summary['trades']['avg_slippage_bps']:.2f} bps\n"
-            f"\nGreeks:\n"
-            f"  Avg Delta: {summary['greeks']['avg_delta']:.1f}\n"
-            f"  Max |Delta|: {summary['greeks']['max_abs_delta']:.1f}\n"
-            f"  % Time Hedged: {summary['greeks']['pct_time_hedged']:.1f}%\n"
-            f"\nP&L:\n"
-            f"  Realized: ${summary['pnl']['realized_pnl']:,.2f}\n"
-            f"  Unrealized: ${summary['pnl']['unrealized_pnl']:,.2f}\n"
-            f"  Total: ${summary['pnl']['total_pnl']:,.2f}\n"
-            f"  Max Drawdown: ${summary['pnl']['max_drawdown']:,.2f}\n"
-            f"\nCosts: ${summary['total_costs']:,.2f}\n"
-            f"Net P&L: ${summary['net_pnl_after_costs']:,.2f}\n"
-            + "="*60,
-            event="session_summary",
-            **summary,
+        # Build summary string (avoid loguru multiline issues)
+        summary_text = (
+            f"Session {summary['session_date']} | "
+            f"Duration: {summary['duration_minutes']:.1f}min | "
+            f"Trades: {summary['trades']['n_trades']} | "
+            f"Volume: {summary['trades']['total_volume']} | "
+            f"Avg Δ: {summary['greeks']['avg_delta']:.1f} | "
+            f"P&L: ${summary['pnl']['total_pnl']:,.2f}"
         )
+        logger.info(summary_text, event="session_summary")
         
         # Also log to metrics
         log_metrics(

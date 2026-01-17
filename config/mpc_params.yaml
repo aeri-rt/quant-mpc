@@ -19,12 +19,17 @@ mpc:
     print_level: 0     # 0=silent, 5=verbose
   
   # Cost function weights
-  # Objective: Σ [ w_exec * |u|² + w_delta * Δ² + w_gamma * (Γ - Γ_target)² + ... ]
+  # Objective: Σ [ w_exec * (c_quad * u² + c_lin * |u|) + w_delta * σ * Δ² + w_rate * (u_t - u_{t-1})² ] + w_terminal * Δ_final²
   weights:
     execution_cost: 1.0      # Penalize trading (transaction costs)
-    delta_deviation: 10.0    # Penalize delta exposure
-    delta_rate: 0.1          # Penalize rapid delta changes
+    delta_deviation: 10.0    # Penalize delta exposure (scaled by volatility)
+    delta_rate: 0.1          # Penalize rapid delta changes (smoothness)
     terminal_delta: 100.0    # Terminal cost on delta (end of horizon)
+    
+  # Transaction cost model
+  costs:
+    c_quad: 0.001            # Quadratic cost per share² (market impact)
+    c_lin: 0.01              # Linear cost per share (spread + commission)
   
   # Constraints
   constraints:

@@ -128,8 +128,19 @@ class GammaScalpingStrategy:
             execute_trade(recommendation)
     """
     
-    def __init__(self, config: Optional[GammaScalpingConfig] = None):
-        """Initialize the strategy."""
+    def __init__(
+        self, 
+        config: Optional[GammaScalpingConfig] = None,
+        mpc_config: Optional[MPCConfig] = None,
+    ):
+        """
+        Initialize the strategy.
+        
+        Args:
+            config: Strategy configuration
+            mpc_config: Optional pre-configured MPCConfig (e.g., from YAML).
+                        If not provided, creates from config values.
+        """
         self.config = config or GammaScalpingConfig()
         
         # Initialize Greeks calculator
@@ -139,15 +150,17 @@ class GammaScalpingStrategy:
         )
         
         # Initialize MPC controller
-        mpc_config = MPCConfig(
-            n_horizon=self.config.mpc_horizon,
-            q_max=self.config.mpc_q_max,
-            u_max=self.config.mpc_u_max,
-            w_delta=self.config.mpc_w_delta,
-            w_exec=self.config.mpc_w_exec,
-            c_lin=self.config.mpc_c_lin,
-            kappa=self.config.mpc_kappa,
-        )
+        # Use provided mpc_config or create from strategy config
+        if mpc_config is None:
+            mpc_config = MPCConfig(
+                n_horizon=self.config.mpc_horizon,
+                q_max=self.config.mpc_q_max,
+                u_max=self.config.mpc_u_max,
+                w_delta=self.config.mpc_w_delta,
+                w_exec=self.config.mpc_w_exec,
+                c_lin=self.config.mpc_c_lin,
+                kappa=self.config.mpc_kappa,
+            )
         self.mpc = DeltaHedgeMPC(mpc_config)
         
         # Parameter estimator
@@ -232,6 +245,42 @@ class GammaScalpingStrategy:
         
         if self._equity_position:
             self._equity_position.current_price = underlying_price
+    
+    def update_greeks_from_quotes(self, option_quotes: dict) -> int:
+        """
+        Update option positions with Greeks from IBKR quotes.
+        
+        This allows using IBKR's model Greeks instead of our Black-Scholes
+        calculations. IBKR Greeks may be more accurate for:
+        - American options (early exercise premium)
+        - Dividend adjustments
+        - Interest rate environment
+        
+        Args:
+            option_quotes: Dict mapping option symbol to OptionQuote
+                           (e.g., from provider.get_option_quote())
+        
+        Returns:
+            Number of positions updated with IBKR Greeks
+        """
+        updated = 0
+        for pos in self._option_positions:
+            if pos.symbol in option_quotes:
+                quote = option_quotes[pos.symbol]
+                if hasattr(quote, 'delta') and quote.delta != 0:
+                    pos.set_ibkr_greeks(
+                        delta=quote.delta,
+                        gamma=quote.gamma,
+                        vega=quote.vega,
+                        theta=quote.theta,
+                        iv=quote.iv if hasattr(quote, 'iv') else 0.0,
+                    )
+                    updated += 1
+        
+        if updated > 0:
+            logger.debug(f"Updated {updated} positions with IBKR Greeks")
+        
+        return updated
     
     # -------------------------------------------------------------------------
     # Core Strategy Logic

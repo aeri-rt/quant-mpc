@@ -4,6 +4,12 @@ Verify that the development environment is set up correctly.
 
 Run this after installing dependencies to ensure everything works.
 
+Ensure VENV is activated. Activate it with: 
+
+cd /Users/rtrinh/Quant/quant-mpc
+source venv/bin/activate
+python scripts/verify_setup.py
+
 Usage:
     python scripts/verify_setup.py
 """
