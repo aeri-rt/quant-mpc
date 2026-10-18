@@ -30,7 +30,7 @@ ib_async; positions keyed by conId (`Book.from_positions` refuses anything that 
 ## Consequences
 
 ### Positive
-- `src/` went from ≈7,500 LOC in 7 subpackages (the archived tree: 24 files, 7,465 lines in control, core, execution, models, risk, strategy, utils) to 3,754 LOC in 16 flat modules (`wc -l` on 2026-10-18: backtest 849, scripts 789, tests 5,422); do_mpc, casadi, ib_insync, yfinance, pydantic-settings and sqlalchemy are gone from the venv; `pip check` is clean; 419 offline tests run in ≈20 s (22 s wall on 2026-10-18).
+- `src/` went from ≈7,500 LOC in 7 subpackages (the archived tree: 24 files, 7,465 lines in control, core, execution, models, risk, strategy, utils) to 3,756 LOC in 16 flat modules (`wc -l` on 2026-10-18: backtest 849, scripts 789, tests 5,438); do_mpc, casadi, ib_insync, yfinance, pydantic-settings and sqlalchemy are gone from the venv; `pip check` is clean; 420 offline tests run in ≈20 s (22 s wall on 2026-10-18).
 - The hedger has one parameter per policy (γ for the band, λ for the QP) and both are compared on the same (hedge friction/day, hedge-error std) frontier (`run_backtest.py --hedger all --sweep`).
 - Every tick leaves a `decisions` row, so the slow part (the gate being closed most of the time) still produces the dataset the next decision needs.
 

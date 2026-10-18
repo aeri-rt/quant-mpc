@@ -15,6 +15,8 @@ _CONSOLE = (
 
 def setup(log_dir: Path | str | None, level: str = "INFO") -> None:
     """Console sink at `level`; the DEBUG JSONL file sink only when `log_dir` is given."""
+    for stream in (sys.stdout, sys.stderr):  # Windows redirects default to cp1252: no γ/Δ/→
+        getattr(stream, "reconfigure", lambda **_: None)(encoding="utf-8")
     logger.remove()
     logger.configure(extra={"component": "-"})  # unbound loggers print "-"; bind() overrides
     logger.add(sys.stderr, level=level, format=_CONSOLE)

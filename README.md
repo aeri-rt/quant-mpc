@@ -8,7 +8,7 @@ A gated long-gamma SPY straddle, delta-hedged by a cost-aware Whalley–Wilmott 
 python3 -m venv venv && source venv/bin/activate        # Windows: .\venv\Scripts\Activate.ps1
 pip install $(python -c "import tomllib;d=tomllib.load(open('pyproject.toml','rb'))['project'];print(' '.join(d['dependencies']+d['optional-dependencies']['dev']))")
 # or the pinned set: pip install -r requirements.lock
-pytest -q                                               # 419 offline tests, ≈20 s, no broker
+pytest -q                                               # 420 offline tests, ≈20 s, no broker
 
 python scripts/run_backtest.py --synthetic --hedger all --force-open   # bars are generated from backtest.yaml's seed
 python scripts/fetch_data.py --cboe                     # Cboe VIX9D/VIX/VIX3M closes → data/cache (real-bar backtests also need --ibkr)

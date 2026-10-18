@@ -2,7 +2,10 @@
 
 import importlib
 import json
+import os
+import subprocess
 import sys
+from pathlib import Path
 
 import pytest
 from loguru import logger
@@ -31,7 +34,7 @@ def test_setup_writes_one_jsonl_line(tmp_path, clean_logger):
     logger.remove()  # flush + close the file sink before reading
     files = list(tmp_path.glob("quant-mpc_*.jsonl"))
     assert len(files) == 1
-    lines = files[0].read_text().splitlines()
+    lines = files[0].read_text(encoding="utf-8").splitlines()
     assert len(lines) == 1
     rec = json.loads(lines[0])["record"]
     assert rec["extra"]["component"] == "x"
@@ -54,3 +57,16 @@ def test_unbound_logger_prints_dash(clean_logger, capsys):
     get_logger("x").info("bound")
     err = capsys.readouterr().err
     assert "| - | plain" in err and "| x | bound" in err
+
+
+def test_setup_makes_redirected_console_utf8():
+    # a redirected Windows console defaults to cp1252; the backtest tables print γ/Δ/σ
+    r = subprocess.run(
+        [sys.executable, "-c", "from src.log import setup; setup(None); print('γΔσ→')"],
+        cwd=Path(__file__).resolve().parents[1],
+        capture_output=True,
+        env={**os.environ, "PYTHONIOENCODING": "cp1252"},
+        check=False,
+    )
+    assert r.returncode == 0, r.stderr
+    assert r.stdout.decode("utf-8").strip() == "γΔσ→"

@@ -8,7 +8,7 @@ license = {text = "MIT"}
 authors = [{name = "RTN"}]
 dependencies = [
   "ib_async>=2.1,<3",
-  "numpy>=2,<3",
+  "numpy>=2,<2.5",  # pandas 2.3 on numpy 2.5 warns on generic timedelta units (lock-drift, 2026-10-18)
   "scipy>=1.11,<2",
   "pandas>=2,<3",
   "pyarrow>=14",
