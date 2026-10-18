@@ -11,6 +11,7 @@ Provides pre-trade validation and risk controls including:
 All recommendations pass through risk checks before execution.
 """
 
+import math
 from dataclasses import dataclass, field
 from datetime import datetime, date
 from enum import Enum
@@ -169,6 +170,17 @@ class RiskManager:
             RiskCheckResponse indicating pass/fail and any adjustments
         """
         with self._lock:
+            # NaN/Inf guard on all numeric inputs
+            def _sanitize(val: float, name: str) -> float:
+                if math.isnan(val) or math.isinf(val):
+                    logger.warning(f"Risk input {name} is NaN/Inf, treating as 0.0")
+                    return 0.0
+                return val
+            
+            quantity = _sanitize(float(quantity), "quantity")
+            current_delta = _sanitize(float(current_delta), "current_delta")
+            current_gamma = _sanitize(float(current_gamma), "current_gamma")
+            
             # Reset daily stats if new day
             self._maybe_reset_daily_stats()
             
@@ -230,6 +242,17 @@ class RiskManager:
                         passed=False,
                         result=RiskCheckResult.FAIL_DELTA_LIMIT,
                         message=f"Delta limit {self.config.max_portfolio_delta} would be exceeded",
+                        original_quantity=quantity,
+                        adjusted_quantity=0.0,
+                    )
+            
+            # Check gamma limits (only for risk-increasing trades)
+            if not is_risk_reducing and self.config.max_portfolio_gamma > 0:
+                if abs(current_gamma) > self.config.max_portfolio_gamma:
+                    return RiskCheckResponse(
+                        passed=False,
+                        result=RiskCheckResult.FAIL_GAMMA_LIMIT,
+                        message=f"Gamma limit {self.config.max_portfolio_gamma} exceeded (current={current_gamma:.2f})",
                         original_quantity=quantity,
                         adjusted_quantity=0.0,
                     )
@@ -333,10 +356,6 @@ class RiskManager:
     def _check_trade_rate(self) -> bool:
         """Check if trade rate limits are exceeded."""
         now = datetime.now()
-        
-        # Clean up old trades
-        one_minute_ago = now.replace(second=now.second - 60 if now.second >= 60 else 0)
-        one_hour_ago = now.replace(minute=now.minute - 60 if now.minute >= 60 else 0)
         
         # Count recent trades
         trades_last_minute = sum(1 for t in self._recent_trades if (now - t).total_seconds() < 60)

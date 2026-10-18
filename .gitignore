@@ -98,4 +98,6 @@ Thumbs.db
 *.log
 *.db
 *.sqlite
+logs/
+!logs/.gitkeep
 

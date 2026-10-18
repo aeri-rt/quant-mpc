@@ -121,6 +121,13 @@ class OptionPosition:
         return self.position_type == PositionType.PUT
     
     @property
+    def dte(self) -> int:
+        """Days to expiry (integer)."""
+        now = datetime.now()
+        delta = self.expiry - now
+        return max(int(delta.total_seconds() / 86400), 0)
+
+    @property
     def time_to_expiry(self) -> float:
         """Time to expiry in years."""
         now = datetime.now()

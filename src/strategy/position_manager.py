@@ -319,3 +319,8 @@ class PositionManager:
         """Clear entry data for a closed position."""
         self._entry_prices.pop(symbol, None)
         self._entry_times.pop(symbol, None)
+
+    def clear_all_positions(self) -> None:
+        """Clear all tracked entry prices and times."""
+        self._entry_prices.clear()
+        self._entry_times.clear()

@@ -110,6 +110,13 @@ from .metrics import (
     reset_metrics_tracker,
 )
 
+from .validation import (
+    validate_quote,
+    validate_option_quote,
+    validate_spot_price,
+    ValidationError,
+)
+
 from .helpers import (
     # Constants
     TRADING_DAYS_PER_YEAR,
@@ -131,6 +138,12 @@ from .helpers import (
 
 # Add to __all__
 __all__.extend([
+    # Validation
+    'validate_quote',
+    'validate_option_quote',
+    'validate_spot_price',
+    'ValidationError',
+    
     'MetricsTracker',
     'TradeRecord',
     'GreeksSnapshot',

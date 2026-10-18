@@ -87,21 +87,33 @@ quant-mpc/
 │   ├── strategy_params.yaml  # Strategy parameters
 │   └── logging.yaml     # Logging configuration
 ├── src/                 # Main source code
-│   ├── core/            # Core types (Quote, Position, etc.)
+│   ├── core/            # Core types, state machine, exceptions
+│   │   ├── types.py         # Quote, Position, MarketState, etc.
+│   │   ├── state_machine.py # Trading lifecycle state machine
+│   │   └── exceptions.py    # Custom exception hierarchy
 │   ├── data/            # Data providers
 │   │   ├── provider.py      # Abstract DataProvider interface
 │   │   ├── ibkr_provider.py # IBKR implementation
-│   │   └── options_chain.py # Options chain manager
+│   │   ├── options_chain.py # Options chain manager
+│   │   └── trade_store.py   # SQLite trade persistence
 │   ├── models/          # Financial models
 │   │   ├── black_scholes.py # BS pricing (numeric + CasADi symbolic)
 │   │   └── greeks.py        # Portfolio Greeks aggregation
 │   ├── control/         # MPC implementation
 │   │   └── mpc_controller.py # DeltaHedgeMPC with do-mpc
 │   ├── strategy/        # Trading strategies
-│   │   └── gamma_scalping.py # GammaScalpingStrategy
-│   ├── execution/       # Order execution (TODO)
-│   ├── risk/            # Risk management (TODO)
-│   └── utils/           # Utilities (logging, etc.)
+│   │   ├── gamma_scalping.py # GammaScalpingStrategy
+│   │   └── position_manager.py # Roll/exit logic
+│   ├── execution/       # Order execution
+│   │   └── order_manager.py # Order lifecycle, straddle orders
+│   ├── risk/            # Risk management
+│   │   └── risk_manager.py  # Position/delta/gamma limits, kill switch
+│   └── utils/           # Utilities
+│       ├── logging.py       # Structured logging
+│       ├── config.py        # YAML config loader
+│       ├── metrics.py       # Session metrics tracker
+│       ├── validation.py    # Data validation (NaN/Inf guards)
+│       └── helpers.py       # Safe type conversions, constants
 ├── scripts/             # Runnable scripts
 │   ├── test_ibkr_connection.py  # Test IBKR connectivity
 │   └── run_paper.py     # Paper trading runner
@@ -115,20 +127,27 @@ quant-mpc/
 └── data/                # Local data storage (gitignored)
 ```
 
-## Current Status
+## Current Status (V1)
 
 | Component | Status | Notes |
 |-----------|--------|-------|
 | Black-Scholes Greeks | ✅ Complete | Numeric + CasADi symbolic |
 | Portfolio Greeks | ✅ Complete | Aggregation with dividend yield |
 | MPC Controller | ✅ Complete | Validated with 4 test scenarios |
-| IBKR Data Provider | ✅ Complete | Quotes, options, positions |
-| Options Chain Manager | ✅ Complete | Caching and queries |
+| IBKR Data Provider | ✅ Complete | Quotes, options, positions, streaming, reconnect |
+| Options Chain Manager | ✅ Complete | Caching, queries, ATM straddle selection |
 | Gamma Scalping Strategy | ✅ Complete | Full pipeline integration |
-| Paper Trading Script | ✅ Complete | With dry-run mode |
-| Execution Layer | 🚧 TODO | Order submission |
-| Risk Management | 🚧 TODO | Position limits, kill switch |
-| Backtest Framework | 🚧 TODO | Historical simulation |
+| Paper Trading Script | ✅ Complete | Dry-run + execution, state machine lifecycle |
+| Execution Layer | ✅ Complete | Order management, straddle orders, fill tracking |
+| Risk Management | ✅ Complete | Position/delta/gamma limits, loss limits, kill switch |
+| Data Validation | ✅ Complete | NaN/Inf/zero guards on quotes, Greeks, prices |
+| Trade Persistence | ✅ Complete | SQLite session/order/fill storage |
+| State Machine | ✅ Complete | Formal lifecycle (init -> run -> stop) |
+| Position Recovery | ✅ Complete | Recover existing IBKR positions on restart |
+| Auto Roll/Exit | ✅ Complete | Auto-execute roll and exit signals |
+| Custom Exceptions | ✅ Complete | Typed exception hierarchy throughout |
+| Backtest Framework | 🚧 V2 | Historical simulation |
+| MHE Estimator | 🚧 V2 | Real-time volatility/kappa estimation |
 
 ## Documentation
 

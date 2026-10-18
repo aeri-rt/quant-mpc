@@ -20,7 +20,9 @@ import uuid
 from ib_insync import IB, Stock, Option, MarketOrder, LimitOrder, Trade, Order as IBOrder
 
 from src.core.types import OrderSide, OrderType, OrderStatus, Fill, OptionType
+from src.core.exceptions import BrokerConnectionError, BrokerOrderError
 from src.utils.logging import get_logger, log_trade
+from src.utils.helpers import safe_float
 
 logger = get_logger("execution")
 
@@ -160,16 +162,22 @@ class OrderManager:
         await order_mgr.cancel_order(order.request.id)
     """
     
-    def __init__(self, ib: IB):
+    def __init__(self, ib: IB, trade_store=None, session_id: str = ""):
         """
         Initialize order manager.
         
         Args:
             ib: Connected ib_insync IB instance
+            trade_store: Optional TradeStore for persistence
+            session_id: Current session ID for TradeStore
         """
         self._ib = ib
         self._orders: Dict[str, ManagedOrder] = {}
         self._fills: List[Fill] = []
+        
+        # Trade persistence (optional)
+        self._trade_store = trade_store
+        self._session_id = session_id
         
         # Callbacks
         self._on_fill_callbacks: List[Callable[[ManagedOrder, Fill], None]] = []
@@ -201,7 +209,7 @@ class OrderManager:
             ManagedOrder tracking the order lifecycle
         """
         if not self._ib.isConnected():
-            raise ConnectionError("Not connected to IBKR")
+            raise BrokerConnectionError("Not connected to IBKR")
         
         logger.info(
             f"Submitting order: {request.side.value} {request.abs_quantity} {request.symbol}",
@@ -222,10 +230,10 @@ class OrderManager:
             ib_order = MarketOrder(action, request.abs_quantity)
         elif request.order_type == OrderType.LIMIT:
             if request.limit_price is None:
-                raise ValueError("Limit price required for limit orders")
+                raise BrokerOrderError("Limit price required for limit orders")
             ib_order = LimitOrder(action, request.abs_quantity, request.limit_price)
         else:
-            raise ValueError(f"Unsupported order type: {request.order_type}")
+            raise BrokerOrderError(f"Unsupported order type: {request.order_type}")
         
         # Create managed order
         managed_order = ManagedOrder(request=request)
@@ -257,6 +265,33 @@ class OrderManager:
                 broker_order_id=managed_order.broker_order_id,
                 reason=request.reason,
             )
+            
+            # Persist to TradeStore
+            if self._trade_store and self._session_id:
+                try:
+                    from src.data.trade_store import StoredOrder
+                    stored_order = StoredOrder(
+                        id=request.id,
+                        symbol=request.symbol,
+                        side=request.side.value,
+                        quantity=request.abs_quantity,
+                        order_type=request.order_type.value,
+                        limit_price=request.limit_price,
+                        status="SUBMITTED",
+                        broker_order_id=managed_order.broker_order_id,
+                        submitted_at=datetime.now().isoformat(),
+                        filled_at=None,
+                        cancelled_at=None,
+                        filled_quantity=0,
+                        avg_fill_price=0.0,
+                        error_message=None,
+                        strategy=request.strategy,
+                        reason=request.reason,
+                        session_id=self._session_id,
+                    )
+                    self._trade_store.save_order(stored_order)
+                except Exception as e:
+                    logger.debug(f"Failed to persist order: {e}")
             
         except Exception as e:
             managed_order.status = OrderStatus.REJECTED
@@ -298,7 +333,7 @@ class OrderManager:
         quantity = int(round(quantity))
         
         if quantity == 0:
-            raise ValueError("Cannot submit order with zero quantity")
+            raise BrokerOrderError("Cannot submit order with zero quantity")
         
         order_type = OrderType.LIMIT if use_limit else OrderType.MARKET
         limit_price = None
@@ -311,13 +346,27 @@ class OrderManager:
             await asyncio.sleep(0.5)
             self._ib.cancelMktData(contract)
             
-            mid = (ticker.bid + ticker.ask) / 2 if ticker.bid and ticker.ask else ticker.last
+            # Safely compute mid price, guarding against NaN
+            bid = safe_float(ticker.bid)
+            ask = safe_float(ticker.ask)
+            last = safe_float(ticker.last)
+            
+            if bid > 0 and ask > 0:
+                mid = (bid + ask) / 2
+            elif last > 0:
+                mid = last
+            else:
+                # No valid price -- fall back to market order
+                logger.warning(f"No valid quote for {symbol} limit order, falling back to market")
+                order_type = OrderType.MARKET
+                mid = 0.0
             
             # Set limit price with offset (buy above mid, sell below mid)
-            if quantity > 0:
-                limit_price = round(mid + limit_offset, 2)
-            else:
-                limit_price = round(mid - limit_offset, 2)
+            if order_type == OrderType.LIMIT and mid > 0:
+                if quantity > 0:
+                    limit_price = round(mid + limit_offset, 2)
+                else:
+                    limit_price = round(mid - limit_offset, 2)
         
         request = OrderRequest(
             symbol=symbol,
@@ -344,7 +393,7 @@ class OrderManager:
             ManagedOrder tracking the order lifecycle
         """
         if not self._ib.isConnected():
-            raise ConnectionError("Not connected to IBKR")
+            raise BrokerConnectionError("Not connected to IBKR")
         
         logger.info(
             f"Submitting option order: {request.side.value} {request.abs_quantity} "
@@ -370,7 +419,7 @@ class OrderManager:
         # Qualify the contract
         qualified = await self._ib.qualifyContractsAsync(contract)
         if not qualified:
-            raise ValueError(f"Failed to qualify option contract: {request.symbol}")
+            raise BrokerOrderError(f"Failed to qualify option contract: {request.symbol}")
         
         # Create IB order
         action = "BUY" if request.quantity > 0 else "SELL"
@@ -379,10 +428,10 @@ class OrderManager:
             ib_order = MarketOrder(action, request.abs_quantity)
         elif request.order_type == OrderType.LIMIT:
             if request.limit_price is None:
-                raise ValueError("Limit price required for limit orders")
+                raise BrokerOrderError("Limit price required for limit orders")
             ib_order = LimitOrder(action, request.abs_quantity, request.limit_price)
         else:
-            raise ValueError(f"Unsupported order type: {request.order_type}")
+            raise BrokerOrderError(f"Unsupported order type: {request.order_type}")
         
         # Create managed order using equity OrderRequest as base
         equity_request = OrderRequest(
@@ -488,14 +537,22 @@ class OrderManager:
             self._ib.cancelMktData(call_contract)
             self._ib.cancelMktData(put_contract)
             
-            # Set limit prices
-            if call_ticker.bid and call_ticker.ask:
-                call_mid = (call_ticker.bid + call_ticker.ask) / 2
+            # Set limit prices with NaN safety
+            call_bid = safe_float(call_ticker.bid)
+            call_ask = safe_float(call_ticker.ask)
+            if call_bid > 0 and call_ask > 0:
+                call_mid = (call_bid + call_ask) / 2
                 limit_call = round(call_mid + limit_offset if quantity > 0 else call_mid - limit_offset, 2)
+            else:
+                logger.warning("No valid call quote for limit pricing, using market order")
             
-            if put_ticker.bid and put_ticker.ask:
-                put_mid = (put_ticker.bid + put_ticker.ask) / 2
+            put_bid = safe_float(put_ticker.bid)
+            put_ask = safe_float(put_ticker.ask)
+            if put_bid > 0 and put_ask > 0:
+                put_mid = (put_bid + put_ask) / 2
                 limit_put = round(put_mid + limit_offset if quantity > 0 else put_mid - limit_offset, 2)
+            else:
+                logger.warning("No valid put quote for limit pricing, using market order")
         
         # Create order requests
         call_request = OptionOrderRequest(
@@ -687,6 +744,19 @@ class OrderManager:
                 avg_fill_price=managed_order.avg_fill_price,
             )
             
+            # Persist to TradeStore if available
+            if self._trade_store and self._session_id:
+                try:
+                    self._trade_store.update_order_status(
+                        order_id=managed_order.request.id,
+                        status=managed_order.status.value,
+                        filled_quantity=managed_order.filled_quantity,
+                        avg_fill_price=managed_order.avg_fill_price,
+                        broker_order_id=managed_order.broker_order_id,
+                    )
+                except Exception as e:
+                    logger.debug(f"Failed to persist order status: {e}")
+            
             # Notify callbacks
             for callback in self._on_status_change_callbacks:
                 try:
@@ -711,6 +781,24 @@ class OrderManager:
         )
         
         self._fills.append(fill_record)
+        
+        # Persist fill to TradeStore if available
+        if self._trade_store and self._session_id:
+            try:
+                from src.data.trade_store import StoredFill
+                stored_fill = StoredFill(
+                    id=0,  # Auto-generated
+                    order_id=fill_record.order_id,
+                    symbol=fill_record.instrument,
+                    quantity=fill_record.quantity,
+                    price=fill_record.price,
+                    commission=fill_record.commission,
+                    timestamp=fill_record.timestamp.isoformat(),
+                    session_id=self._session_id,
+                )
+                self._trade_store.save_fill(stored_fill)
+            except Exception as e:
+                logger.debug(f"Failed to persist fill: {e}")
         
         logger.info(
             f"Fill received: {fill_record.quantity} @ ${fill_record.price:.2f}",
