@@ -81,8 +81,8 @@ dmypy.json
 .ruff_cache/
 
 # Local data (contains market data, logs, state)
-data/
-!data/.gitkeep
+/data/*
+!/data/.gitkeep
 
 # Secrets
 *.pem
@@ -98,6 +98,6 @@ Thumbs.db
 *.log
 *.db
 *.sqlite
-logs/
-!logs/.gitkeep
+/logs/*
+!/logs/.gitkeep
 

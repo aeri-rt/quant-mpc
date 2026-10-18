@@ -30,7 +30,7 @@ if command -v python3 &> /dev/null; then
 elif command -v python &> /dev/null; then
     PYTHON_CMD="python"
 else
-    echo "✗ Python not found. Please install Python 3.11 or later."
+    echo "✗ Python not found. Please install Python 3.12 or later."
     exit 1
 fi
 
@@ -40,9 +40,9 @@ PYTHON_MINOR=$(echo $PYTHON_VERSION | cut -d'.' -f2)
 
 echo "  Found Python $PYTHON_VERSION"
 
-if [ "$PYTHON_MAJOR" -lt 3 ] || ([ "$PYTHON_MAJOR" -eq 3 ] && [ "$PYTHON_MINOR" -lt 11 ]); then
-    echo "✗ Python 3.11 or later required. Found $PYTHON_VERSION"
-    echo "  Install with: brew install python@3.11"
+if [ "$PYTHON_MAJOR" -lt 3 ] || ([ "$PYTHON_MAJOR" -eq 3 ] && [ "$PYTHON_MINOR" -lt 12 ]); then
+    echo "✗ Python 3.12 or later required. Found $PYTHON_VERSION"
+    echo "  Install with: brew install python@3.12"
     exit 1
 fi
 echo "✓ Python version OK"
@@ -71,10 +71,10 @@ pip install --upgrade pip --quiet
 echo "✓ pip upgraded"
 echo ""
 
-# Install dependencies
+# Install dependencies (runtime + dev, read straight from pyproject.toml)
 echo "Installing dependencies..."
 echo "  This may take a few minutes..."
-pip install -e ".[dev]" --quiet
+pip install --quiet $(python -c "import tomllib;d=tomllib.load(open('pyproject.toml','rb'))['project'];print(' '.join(d['dependencies']+d['optional-dependencies']['dev']))")
 echo "✓ Dependencies installed"
 echo ""
 
@@ -85,7 +85,7 @@ echo ""
 FAILED=0
 
 # Core packages
-for pkg in numpy scipy pandas casadi do_mpc ib_insync pydantic loguru; do
+for pkg in numpy scipy pandas ib_async pydantic loguru exchange_calendars; do
     if python -c "import $pkg" 2>/dev/null; then
         VERSION=$(python -c "import $pkg; print(getattr($pkg, '__version__', 'OK'))")
         echo "  ✓ $pkg: $VERSION"
@@ -94,33 +94,6 @@ for pkg in numpy scipy pandas casadi do_mpc ib_insync pydantic loguru; do
         FAILED=$((FAILED + 1))
     fi
 done
-
-# Test IPOPT solver
-if python -c "
-import casadi as ca
-x = ca.MX.sym('x')
-nlp = {'x': x, 'f': x**2}
-solver = ca.nlpsol('solver', 'ipopt', nlp, {'ipopt.print_level': 0, 'print_time': 0})
-" 2>/dev/null; then
-    echo "  ✓ IPOPT solver: OK"
-else
-    echo "  ✗ IPOPT solver: FAILED"
-    FAILED=$((FAILED + 1))
-fi
-
-# Test do-mpc model
-if python -c "
-import do_mpc
-model = do_mpc.model.Model('discrete')
-x = model.set_variable('_x', 'x')
-model.set_rhs('x', x)
-model.setup()
-" 2>/dev/null; then
-    echo "  ✓ do-mpc model: OK"
-else
-    echo "  ✗ do-mpc model: FAILED"
-    FAILED=$((FAILED + 1))
-fi
 
 echo ""
 
@@ -133,10 +106,10 @@ if [ $FAILED -eq 0 ]; then
     echo "  source venv/bin/activate"
     echo ""
     echo "To run paper trading:"
-    echo "  python scripts/run_paper.py --dry-run"
+    echo "  python scripts/run_paper.py"
     echo ""
     echo "To verify setup anytime:"
-    echo "  python scripts/verify_setup.py"
+    echo "  pytest -q"
     echo "============================================================"
 else
     echo "============================================================"

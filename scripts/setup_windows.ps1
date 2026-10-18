@@ -32,7 +32,7 @@ if (Get-Command python -ErrorAction SilentlyContinue) {
 } elseif (Get-Command python3 -ErrorAction SilentlyContinue) {
     $PythonCmd = "python3"
 } else {
-    Write-Host "X Python not found. Please install Python 3.11 or later from python.org" -ForegroundColor Red
+    Write-Host "X Python not found. Please install Python 3.12 or later from python.org" -ForegroundColor Red
     Write-Host "  Make sure to check 'Add Python to PATH' during installation"
     exit 1
 }
@@ -44,8 +44,8 @@ $Minor = [int]$VersionMatch.Groups[2].Value
 
 Write-Host "  Found $PythonVersion"
 
-if ($Major -lt 3 -or ($Major -eq 3 -and $Minor -lt 11)) {
-    Write-Host "X Python 3.11 or later required. Found $PythonVersion" -ForegroundColor Red
+if ($Major -lt 3 -or ($Major -eq 3 -and $Minor -lt 12)) {
+    Write-Host "X Python 3.12 or later required. Found $PythonVersion" -ForegroundColor Red
     Write-Host "  Download from: https://www.python.org/downloads/"
     exit 1
 }
@@ -75,10 +75,11 @@ Write-Host "Upgrading pip..."
 Write-Host "OK pip upgraded" -ForegroundColor Green
 Write-Host ""
 
-# Install dependencies
+# Install dependencies (runtime + dev, read straight from pyproject.toml)
 Write-Host "Installing dependencies..."
 Write-Host "  This may take a few minutes..."
-& pip install -e ".[dev]" --quiet
+$Deps = & python -c "import tomllib;d=tomllib.load(open('pyproject.toml','rb'))['project'];print('\n'.join(d['dependencies']+d['optional-dependencies']['dev']))"
+& pip install $Deps --quiet
 Write-Host "OK Dependencies installed" -ForegroundColor Green
 Write-Host ""
 
@@ -89,7 +90,7 @@ Write-Host ""
 $Failed = 0
 
 # Core packages
-$Packages = @("numpy", "scipy", "pandas", "casadi", "do_mpc", "ib_insync", "pydantic", "loguru")
+$Packages = @("numpy", "scipy", "pandas", "ib_async", "pydantic", "loguru", "exchange_calendars")
 
 foreach ($pkg in $Packages) {
     $result = & python -c "import $pkg; print(getattr($pkg, '__version__', 'OK'))" 2>&1
@@ -99,41 +100,6 @@ foreach ($pkg in $Packages) {
         Write-Host "  X $pkg : FAILED" -ForegroundColor Red
         $Failed++
     }
-}
-
-# Test IPOPT solver
-$ipoptTest = @"
-import casadi as ca
-x = ca.MX.sym('x')
-nlp = {'x': x, 'f': x**2}
-solver = ca.nlpsol('solver', 'ipopt', nlp, {'ipopt.print_level': 0, 'print_time': 0})
-print('OK')
-"@
-
-$result = & python -c $ipoptTest 2>&1
-if ($LASTEXITCODE -eq 0) {
-    Write-Host "  OK IPOPT solver: OK" -ForegroundColor Green
-} else {
-    Write-Host "  X IPOPT solver: FAILED" -ForegroundColor Red
-    $Failed++
-}
-
-# Test do-mpc model
-$dompcTest = @"
-import do_mpc
-model = do_mpc.model.Model('discrete')
-x = model.set_variable('_x', 'x')
-model.set_rhs('x', x)
-model.setup()
-print('OK')
-"@
-
-$result = & python -c $dompcTest 2>&1
-if ($LASTEXITCODE -eq 0) {
-    Write-Host "  OK do-mpc model: OK" -ForegroundColor Green
-} else {
-    Write-Host "  X do-mpc model: FAILED" -ForegroundColor Red
-    $Failed++
 }
 
 Write-Host ""
@@ -147,10 +113,10 @@ if ($Failed -eq 0) {
     Write-Host "  .\venv\Scripts\Activate.ps1"
     Write-Host ""
     Write-Host "To run paper trading:"
-    Write-Host "  python scripts/run_paper.py --dry-run"
+    Write-Host "  python scripts/run_paper.py"
     Write-Host ""
     Write-Host "To verify setup anytime:"
-    Write-Host "  python scripts/verify_setup.py"
+    Write-Host "  pytest -q"
     Write-Host "============================================================"
 } else {
     Write-Host "============================================================"

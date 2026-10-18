@@ -1,0 +1,25 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  test:
+    strategy: {matrix: {os: [ubuntu-latest, windows-latest], python: ["3.12", "3.13"]}}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "${{ matrix.python }}"}
+      - run: pip install -r requirements.lock
+      - run: ruff check src backtest scripts tests
+      - run: ruff format --check src backtest scripts tests
+      - run: pytest -q
+  lock-drift:  # unpinned pyproject install: a stale-lock signal, never a gate
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.13"}
+      - run: python -c "import tomllib;d=tomllib.load(open('pyproject.toml','rb'))['project'];print('\n'.join(d['dependencies']+d['optional-dependencies']['dev']))" > reqs.txt
+        shell: bash
+      - run: pip install -r reqs.txt
+      - run: pytest -q
