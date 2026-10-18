@@ -1,6 +1,6 @@
 # quant-mpc
 
-A gated long-gamma SPY straddle, delta-hedged by a cost-aware Whalley–Wilmott band. The system is long gamma only when its own realized-variance forecast beats the candidate straddle's implied variance by enough to pay theta, hedging friction and the option round-trip; it is expected to be flat most of the time while writing one `decisions` row per tick. A receding-horizon QP hedger ships as its closed-form first action for research and is shadow-logged on every tick; the V1 numerical controller, its estimators and everything built around them were deleted ([ADR-004](docs/decisions/004-v2-thesis-and-hedger.md)).
+A gated long-gamma SPY straddle, delta-hedged by a cost-aware Whalley–Wilmott band. The system is long gamma only when its own realized-variance forecast beats the candidate straddle's implied variance by enough to pay theta, hedging friction and the option round-trip; it is expected to be flat most of the time while writing one `decisions` row per tick. A receding-horizon QP hedger ships as its closed-form first action for research and is shadow-logged on every tick.
 
 ## Quickstart
 
