@@ -1,3 +1,10 @@
+> **Status: owner's intent document, kept for reference. Implemented by [ADR-004](../decisions/004-v2-thesis-and-hedger.md) with these corrections:**
+> the deadband formula `band = k·(tc/(|Γ|·S·σ²))^{1/3}` in §6.1 of this spec is inverted;
+> the implemented Whalley–Wilmott half-width is `((3/2)·e^{−rT}·k·S·Γ_p²/γ)^{1/3}` shares (it grows with Γ^{2/3});
+> the CampaignManager / OptionSelector / MPCScheduler components are replaced by `src/gate.py` + `src/runner.py`;
+> the MPC is the closed-form receding-horizon QP in `src/hedge.py` (no solver, final design);
+> the body below is unchanged and its V1 references (ADR-002, `src/control/`, `src/strategy/`) point at deleted files.
+
 # Design Document: Gamma Scalping V2 Alpha Spec (Selective Long Gamma + Cost-Aware MPC)
 
 ## Overview

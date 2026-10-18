@@ -1,7 +1,9 @@
 # ADR-001: Project Inception and Strategic Direction
 
 ## Status
-Accepted
+Accepted (historical). Superseded by [ADR-004](004-v2-thesis-and-hedger.md) (2026-10-17): the
+do-mpc/CasADi/IPOPT controller, MHE and `ib_insync` choices below were replaced by a
+Whalley–Wilmott band, a closed-form QP with no solver, and `ib_async`. The body is kept as written.
 
 ## Date
 2025-12-31

@@ -1,7 +1,9 @@
 # ADR 003: Data Source Selection
 
 ## Status
-Accepted
+Accepted; IBKR remains the data and execution source. Superseded in part by
+[ADR-004](004-v2-thesis-and-hedger.md) (2026-10-17): the client library is now `ib_async`, not
+`ib_insync`. The body is kept as written.
 
 ## Date
 2026-01-04

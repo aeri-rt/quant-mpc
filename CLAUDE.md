@@ -4,118 +4,97 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A Model Predictive Control (MPC) gamma-scalping system for SPY options/equities. The thesis is that delta hedging is an *optimal control problem* — solve a finite-horizon NLP each tick, apply the first action, re-solve next tick. Based on Clinet, Perreton, Reydellet (2021).
+A gated long-gamma SPY straddle, delta-hedged by a cost-aware Whalley–Wilmott band. The thesis (ADR-004, `docs/decisions/004-v2-thesis-and-hedger.md`) is that the edge is the *gate* — long gamma only when the realized-variance forecast beats the candidate's implied variance by enough to pay theta, hedging friction and the option round-trip — and the hedger only decides how cheaply to carry it. A receding-horizon QP ships as its closed-form first action (research path, shadow-logged every tick). The hedger has no casadi/do-mpc/scipy optimizer or QP solver and none will be added (the N-step program exists only as a scipy SLSQP test oracle); scipy in production is limited to `norm` and the `brentq` implied-vol root in `src/bs.py`.
 
 ## Commands
 
-Always activate the venv first: `source venv/bin/activate` (macOS/Linux) or `.\venv\Scripts\Activate.ps1` (Windows). All commands assume venv-active.
+Always activate the venv first: `source venv/bin/activate` (macOS/Linux) or `.\venv\Scripts\Activate.ps1` (Windows).
 
 ```bash
-# Verify deps + IPOPT/do-mpc work end-to-end
-python scripts/verify_setup.py
+# Lint + format (line length 100, target py312; ruff DTZ and ASYNC rules are on)
+ruff check src backtest scripts tests
+ruff format src backtest scripts tests
 
-# Lint + format (line length 100, target py311)
-ruff check src/ backtest/ scripts/ tests/
-ruff format src/ backtest/ scripts/ tests/
+# Tests — all offline (no TWS, no network), ≈20 s; asyncio_mode=auto, pythonpath=["."]
+pytest -q
+pytest tests/test_hedge.py -q
+pytest tests/test_hedge.py::test_qp_closed_form_equals_program -q
+pytest -k "flatten" -q
+pytest --tb=long -x
 
-# Tests — pytest is configured with asyncio_mode=auto, so async tests don't need @pytest.mark.asyncio
-pytest                                          # all tests
-pytest tests/test_backtest.py                   # one file
-pytest tests/test_backtest.py::TestPnLEngineEquity::test_buy_sell_realized_pnl  # one test
-pytest -k "kappa"                               # by name pattern
-pytest --tb=long -x                             # stop on first failure with full traceback
+# Backtest (offline; synthetic bars are generated from config/backtest.yaml's seed)
+python scripts/run_backtest.py --synthetic --hedger all --force-open      # ≈180 s at 1-min bars
+python scripts/run_backtest.py --synthetic --hedger band --interval 300    # ≈13 s (≈32 s with --hedger all --force-open)
+python scripts/run_backtest.py --ibkr --hedger all --sweep --start 2024-10-07 --end 2025-03-31   # real bars cached by fetch_data --ibkr; the first 60 sessions are vol warm-up, P&L from 2025-01-02
+python scripts/fetch_data.py --cboe                                        # VIX9D/VIX/VIX3M closes → data/cache
+python scripts/fetch_data.py --ibkr --start 2024-10-07 --end 2025-03-31    # 1-min MIDPOINT bars via TWS, cached per session
 
-# Paper trading (requires TWS/IB Gateway running on port 7497)
-python scripts/test_ibkr_connection.py --paper  # connectivity smoke test first
-python scripts/run_paper.py --dry-run           # default: log recommendations, do not trade
-python scripts/run_paper.py --execute           # actually submit orders
-python scripts/run_paper.py --execute --interval 30 --dte 45 --contracts 5
-
-# Backtest (offline, no broker needed)
-python scripts/fetch_backtest_data.py --synthetic        # populate data/cache/ with synthetic bars+VIX
-python scripts/run_backtest.py --synthetic               # run engine with synthetic data
-python scripts/run_backtest.py --config config/backtest.yaml  # with cached real data
+# Paper (TWS/Gateway on 7497, Master Client ID = broker.client_id)
+python scripts/check_ibkr.py                      # read-only checklist; prints the greeks.ibkr_* lines for live.yaml
+python scripts/run_paper.py                       # dry-run (default): orders go to SimBroker
+python scripts/run_paper.py --execute --contracts 1 --force-open
+python scripts/run_paper.py flatten --execute     # liquidate; the only liquidation path after a HALT
+python scripts/calibrate_costs.py                 # booked commissions vs costs model after an execute session
 ```
 
-`tests/test_integration.py` requires a live TWS/Gateway connection — the rest of the test suite is offline. There is no pytest marker for this distinction; check the module docstring before running.
+`--live` needs `--execute`, `--port 7496` on the command line and a typed `CONFIRM`; `--force-open` is refused with `--live`. Exit codes: 0 STOPPED, 3 HALTED (reason printed), 1 otherwise.
 
 ## Architecture
 
-### Two top-level Python packages
+### Flat peer packages
 
-`src/` and `backtest/` are **peer packages**, both rooted at the project directory. Scripts and tests put the project root on `sys.path` (`sys.path.insert(0, str(Path(__file__).parent.parent))`) so both `from src.X` and `from backtest.X` resolve. There's no enclosing namespace — don't add one.
+`src/` (16 modules) and `backtest/` (4) are peer packages rooted at the repo; `scripts/` and `tests/` are packages too and `[tool.pytest.ini_options] pythonpath = ["."]` makes `from src.x`, `from backtest.x`, `from scripts.run_paper` and `from tests.conftest` resolve. There is no enclosing namespace and no subpackages — do not add either. The README's module table is the map.
 
-- `src/` — live & paper trading: data, models, control, strategy, execution, risk
-- `backtest/` — offline simulation: replays historical bars through `GammaScalpingStrategy` + `DeltaHedgeMPC` with VIX-derived IV and a fill simulator
-
-### Live tick pipeline (per-iteration, in `scripts/run_paper.py::run`)
+### Tick pipeline (`Runner.tick`)
 
 ```
-streaming SPY quote (fallback to snapshot)
-  → OptionsChainManager.update_spot
-  → every 5 ticks: refresh IBKR Greeks (preferred over BS calc)
-  → every 10 ticks: PositionManager.check_positions → ROLL / EXIT_PROFIT / EXIT_LOSS signals
-  → every 60 ticks: reconcile internal positions vs IBKR (auto-correct equity drift)
-  → GammaScalpingStrategy.update(spot)
-        ├─ kappa_estimator.update → (κ, S̄, σ)
-        ├─ PortfolioGreeksCalculator.calculate → (Δ, Γ, ν, Θ)
-        ├─ build MPCState(S, Δ_opt, q, Γ_opt, σ, S̄)
-        └─ DeltaHedgeMPC.solve → HedgeRecommendation(trade_quantity, direction, ...)
-  → RiskManager.validate_trade (may adjust quantity or block)
-  → OrderManager.submit_hedge_order → TradeStore (SQLite audit trail)
+quote + drain fills → staleness (DEGRADED / HALT) → RealizedVol.update → leg Greeks/mids → Book.greeks
+→ account + Risk.on_pnl (kill switch) → campaign: candidate, σ_iv, edge_per_day, Gate.evaluate once per session,
+  enter / roll / exit → hedge_all → band_u, qp_u, naive_u; chosen → Risk.check_hedge → one working marketable limit
+→ reconcile by conId → one decisions row (always written, even when a step raises)
 ```
 
-The MPC state is `[S, Δ_opt, q]`, control is `u = Δq` (shares to trade). The objective penalises delta exposure (scaled by σ), execution cost (quadratic + linear |u| via auxiliary `z_abs ≥ |u|` smooth approximation), and trade smoothness. `_apply_direction_regime()` clamps `u` bounds before each solve based on the sign of net delta vs `direction_threshold` — this is what produces three regimes (`BUY_ONLY`, `SELL_ONLY`, `BOTH`) and prevents round-trips. See `docs/design/architecture-overview.md` and `docs/decisions/002-greeks-mpc-integration.md` for full design rationale.
+`Runner.tick` has no sleeps and no wall clock — the backtest drives it per bar through `SimBroker` + `SimClock` (`backtest/sim.py`), and `tests/test_backtest_sim.py::test_live_and_backtest_identical_decision` asserts that live-shaped and backtest-shaped markets produce the same `band_u/qp_u/naive_u`. `SimBroker` is the only order path outside `--execute` (dry-run wraps `Broker(readonly=True)` in it, so a dry-run never cancels real orders a crashed `--execute` session left resting); fills reach the `Book` only by draining `broker.fills`. Reconcile is time-based (`loop.reconcile_s`) plus after a reconnect (`broker.needs_reconcile`) and is skipped while disconnected; it deliberately does not run after every fill, because IBKR positions can lag the fills. A restart with a held straddle replays the campaign's stored broker fills (`Store.campaign_fills`) into the ledger; when they do not rebuild the broker position, one WARNING is logged and max_loss is measured from the first held tick.
+
+### States
+
+`STARTING → RUNNING ⇄ DEGRADED → HALTED → STOPPING → STOPPED`; `TRANSITIONS` in `src/runner.py` is the whole machine and `Runner.fire(event)` raises `IllegalTransition` on anything else. `halt()` cancels our orders, sets the stop event and never flattens (a halted session is stored as `halted` even if a stop arrives afterwards); `flatten()` returns 0 clean / 1 residual / 2 market closed, and every way out (including Ctrl-C / SIGTERM, which cancel it: exit 1, `flatten interrupted` on stderr) cancels our orders, ends the sessions row as `flatten` and disconnects. A lost broker link anywhere in a tick (`BrokerDisconnected`) is DEGRADED, never a halt; DEGRADED → RUNNING calls `cancel_all` first, then the reconcile a reconnect scheduled, before any decision (ib_async does not replay executions it re-fetches). Staleness halts (`loop.stale_halt_s`) only while the market is open. `--force-open` disables the `exit_confirmed` exit, so a forced campaign holds until roll, hard exit or max loss. A fresh entry and a roll's re-entry pass the same guards (`_entry_guard`: delayed data in execute, `no_entry_last_s`, ex-dividend tomorrow, a working share order). A roll re-evaluates the gate on the new candidate and degrades to an exit when it is CLOSED or the re-entry is blocked.
 
 ### Time units
 
-**The MPC `dt` is in years, not seconds.** The YAML `mpc.time.dt` is in seconds; `MPCParams.dt` (the property) converts via `dt_seconds / (252 * 6.5 * 3600)`. The constant `TRADING_MINUTES_PER_YEAR` in `src/utils/helpers.py` is the canonical conversion factor — use it instead of hard-coding `252 * 390`.
+Option `T` is **calendar** years to 16:00 America/New_York (`clock.T_years`); hedging / RV / QP `dt` is **trading** years, seconds / 5,896,800 (`clock.dt_years`). Every datetime is tz-aware (`clock.aware` raises on naive); the only wall-clock read in the codebase is `Clock.now()` in `src/clock.py`, and everything else takes `now` as an argument.
 
-### Configuration layering
+### Configuration
 
-Three YAMLs in `config/` are loaded by `src/utils/config.py::load_config()` into a single cached `AppConfig`:
+`src/config.py` holds pydantic v2 models with `extra="forbid"` and `frozen=True`; `config/live.yaml` must contain every section and `Live` cross-checks (roll_dte < entry_dte, stale_quote_s < stale_halt_s, …). Defaults live in the models; the YAML lists every key (`tests/test_config.py::test_yaml_lists_every_field` checks keys, not values, so values are tuned per the runbook). `config/backtest.yaml` → `Backtest` plus the `live_config` it validates. No env-var layer. Risk fractions are of NetLiquidation, so the paper account's NLV must be reset to the intended live size (runbook).
 
-- `settings.yaml` → `BrokerConfig`, `InstrumentConfig`, app mode
-- `mpc_params.yaml` → `MPCParams` (and `MHE` settings, currently unused)
-- `strategy_params.yaml` → `GammaScalpingParams`, `RiskParams`
+### Costs
 
-`MPCParams` (the YAML-shaped dataclass) is **distinct from** `MPCConfig` (the runtime controller config in `src/control/mpc_controller.py`). The bridge is `MPCConfig.from_yaml_config(mpc_params)`. Both exist because the YAML schema is more nested than the controller wants.
+One convention: a fill executes at bid/ask (the spread is inside the price) and `commission()` + `reg_fees()` ride on `Fill.commission`; `per_share_rate()` and `option_cost()` are planning inputs for the band, QP and gate, never a charge. `option_cost` charges the option half-spread on each leg — deliberately twice the one half-spread per straddle that the BAG limits (net mid ± one half-spread) and SimBroker's fill at the limit pay; backtest P&L uses the fills. `tests/test_backtest_sim.py::test_c5_pnl_regressions` pins the share round trip (2·half-spread + commissions + reg fees); `tests/test_sim_broker.py::test_straddle_fill_prices_and_ledger` pins the BAG fill at its limit.
 
-The backtest has its own flat `BacktestConfig` (`backtest/config.py`) loaded from `config/backtest.yaml` — it doesn't reuse `AppConfig`.
+### Greeks and IBKR units
 
-### State machine — the only legal way to change runtime state
+`bs.greeks` returns per-share delta, gamma (1/$), vega ($/vol-point), theta ($/calendar day); `Book.greeks` scales by qty × 100 and adds shares to delta; the gate converts theta to per trading day. With `greeks.source: ibkr`, IBKR delta/gamma (tick 106) are used per share with Γ·dS carry-forward, and IBKR vega/theta only when `greeks.ibkr_vega_per_volpt` / `ibkr_theta_per_day` are `true`/`false` (`false` = divide by 100 / 365; `null` = Black-Scholes). The shipped default `greeks.source: bs` prices all four Greeks with Black-Scholes at the tick-106 IV; a leg without tick 106 keeps its last IV (WARNING `IV frozen` at most every 10 min per leg). `scripts/check_ibkr.py` measures the ratios and prints the YAML lines.
 
-`src/core/state_machine.py` enforces transitions via a `VALID_TRANSITIONS` whitelist:
+### Validation
 
-```
-INITIALIZING → CONNECTING → POSITIONING → RUNNING ⇄ PAUSED → STOPPING → STOPPED
-                    ↓             ↓           ↓
-                  ERROR         ERROR       ERROR  (RESUME from ERROR re-enters INITIALIZING)
-```
+`src/validation.py` returns a typed value or `None`, never a repair: no bid/ask swap, no back-fill, no clamping. A one-sided, crossed, stale or too-wide quote is `None` and the caller decides what "no data" means this tick.
 
-Always call `state_machine.trigger(StateEvent.X, details=...)` — never mutate `_state` directly. The trading loop's `while self._state_machine.can_trade:` is the kill-switch hook; `RiskManager` calls `runner.stop()` on limit breach, which fires `StateEvent.STOP`.
+### Store
 
-### Position recovery and reconciliation
-
-On startup, `_recover_existing_positions()` reads IBKR positions before opening a new straddle — this prevents doubled exposure on restart. If options exist, it rebuilds `OptionPosition` objects from IBKR data; if only equity exists, it adopts that quantity as the current hedge. There's a 5-minute roll cooldown (`_roll_cooldown_seconds`) to prevent flapping.
-
-Mid-session, `_reconcile_positions()` runs every 60 iterations. On equity-position drift it auto-corrects internal state to match IBKR; on option-position drift it logs a warning only.
-
-### Validation discipline
-
-Quotes from IBKR can arrive with NaN, Inf, zero, or inverted bid/ask (especially on delayed feeds for paper). `src/utils/validation.py` returns *new* `Quote`/`OptionQuote` instances (frozen dataclasses) with sanitised values. Greeks are clamped to physically-meaningful ranges. Validate at the IBKR-provider boundary, not deeper.
+`src/store.py`: sqlite3, WAL for file-backed stores, foreign keys on, UTC ISO text. Tables `sessions`, `orders` (STK and BAG alike, `INSERT OR REPLACE` on save, `update_order` on state change), `fills` (execId primary key, commission patched by execId from commissionReport), `decisions` (one row per tick; `DECISION_COLUMNS` is the schema). `gate_state` is the only gate column. The only fill getter is `campaign_fills` (restart ledger replay) and there is none for sessions; scripts read with `pd.read_sql_query(sql, store._db)`. The decisions `reason` vocabulary: stale, disconnected, greeks_nan, unpaired, no_chain, no_iv, no_vol, spread_wide, entry_unfilled, whatif_failed, size:<why>, straddle:<why>, the entry guards delayed / late / ex_div / working_order, entry, exit:<reason> (max_loss, hard_exit, exit_confirmed, roll_refused; a roll's exit:roll is overwritten by its re-entry), roll, reconcile_adopt, halt:<reason>, shutdown, plus hedge_all's nan / no_vol / close_hedge / increases_exposure / in_band / hedge; `risk_result`: ok, none, halted, delayed, no_account, min_nlv, pdt, increases_exposure, book_bound.
 
 ### Logging
 
-Loguru-based, with component-tagged loggers (`get_logger("mpc")`, `get_logger("strategy")`, `get_logger("ibkr")`, etc.). Console is human-readable; file logs are JSON-serialised. Use the structured helpers (`log_trade`, `log_mpc_solve`, `log_greeks`, `log_metrics`) for events that need to be machine-parsed later — they emit typed records (`TradeLog`, `MPCSolveLog`, etc.). `Timer("op_name")` context manager records `elapsed_ms` for perf-sensitive sections.
-
-### Custom exceptions drive recovery
-
-The paper-trading loop catches `BrokerConnectionError`, `BrokerOrderError`, and `QuantMPCError` (`src/core/exceptions.py`) separately and fires the appropriate `StateEvent` — connection errors trigger `CONNECTION_LOST` (back to CONNECTING), recoverable errors stay in RUNNING, generic exceptions become `FATAL_ERROR`. When adding new error paths, raise the typed exception rather than a bare `Exception`.
+Loguru with two sinks set up once from the entrypoint by `src.log.setup(dir, level)`: human console at `level`, DEBUG JSONL file under `logs/` (the backtest passes `None`: console WARNING, no file). Component loggers via `get_logger("runner")`; structured events are `log.bind(**fields).info("event")`.
 
 ## Conventions
 
-- Status indicators in `README.md`'s "Current Status (V1)" table use ✅/🚧 — keep them in sync when shipping a feature.
-- Configs are YAML; runtime types are dataclasses. New tunable knobs go in YAML *and* in the matching dataclass — don't hardcode in Python.
-- `data/` and `logs/` are gitignored (with `.gitkeep` exceptions). Don't commit `.db`, `.sqlite`, or `.log` files.
-- The codebase uses `ib_insync` for IBKR, not the raw IB API. Async functions; `await provider.connect()`.
+- `README.md`'s "Current status (V2)" table uses ✅ / 🚧 / ❌ with an evidence column — no ✅ without a named test; keep it in sync when shipping.
+- New tunable knobs go in the YAML **and** the matching pydantic model (`extra="forbid"` rejects anything else). A few operational constants deliberately stay module-level because none has needed tuning: `CHAIN_TTL_S`, `CANDIDATE_MAX_SPREAD`, `SHUTDOWN_S`, `IV_WARN_S` (runner), `STOCK_MAX_SPREAD`, `OPTION_MAX_SPREAD` (validation), `ACK_S`, `OFFSET_INTERVAL_S` (broker), `PDT_NLV` (risk); promote one to the YAML when a paper session shows it binding.
+- No wall-clock reads outside `src/clock.py` (`tests/test_clock.py::test_only_wall_clock_read_is_clock_py` enforces it; ruff DTZ forbids naive datetimes); inject `now`.
+- No market orders — marketable DAY limits only; no symbol-keyed positions — conId everywhere; no simulate-on-failure — an order `placeOrder` refuses is a REJECTED order, not a pretend fill; with the socket down nothing is sent (`BrokerDisconnected`, not REJECTED, no reject count).
+- Typed exceptions are only `BrokerError`, `BrokerDisconnected` (`src/broker.py`) and `IllegalTransition` (`src/runner.py`); the tick loop maps `BrokerDisconnected` to DEGRADED and anything else to HALT.
+- `# ponytail:` comments mark deliberate ceilings and their upgrade path (currently two, in `src/vol.py`); add one when you cut a known corner.
+- Tests are offline: `tests/fake_ib.py` and `tests/conftest.py::FakeMarket` stand in for TWS; Runner-driven sim tests use 5-min bars to keep the suite at ≈20 s.
+- Nothing in `data/` or `logs/` is committed (`.gitkeep` only); the pre-refactor V1 tree is commit `713e934` ("Snapshot the V1 working tree before the V2 refactor"); `git show 713e934:<path>` or `git worktree add ../v1 713e934`.

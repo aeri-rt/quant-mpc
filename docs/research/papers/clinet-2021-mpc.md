@@ -1,193 +1,22 @@
-# Paper Summary: Optimal Trading via Model Predictive Control
-
-**Paper:** Clinet, S., Perreton, J.F., Reydellet, S. (2021). "Optimal trading: a model predictive control approach." arXiv:2110.11008v2
-
-**Relevance:** This is the foundational paper for our MPC approach to trading.
-
----
-
-## Key Contributions
-
-1. **LQR Framework for Execution:** Formulates optimal execution as a Linear Quadratic Regulator problem
-2. **Mean-Reversion Signal:** Incorporates price mean-reversion into the optimization
-3. **Aggressive in the Money:** Strategy accelerates when price is favorable
-4. **MPC for Constraints:** Uses Model Predictive Control to handle positivity constraints on participation rate
-
----
-
-## Problem Setup
-
-### State Variables
-- $p_t = (S_t - \mathfrak{S}_t) / S_0$: Price slippage relative to benchmark $\mathfrak{S}_t$
-- $q_t \in [0, 1]$: Proportion of shares remaining to execute
-
-### Control Variable
-- $u_t$: Participation rate (fraction of shares to trade at time $t$)
-
-### Price Dynamics
-The key innovation is including mean-reversion in price:
-
-$$dS_t = \kappa(\bar{S} - S_t)dt + \sigma dW_t$$
-
-Where:
-- $\kappa$: Mean-reversion speed
-- $\bar{S}$: Reference/equilibrium price
-- $\sigma$: Volatility
-
-### Market Impact
-Linear market impact model:
-$$\text{Impact} = \eta \cdot u_t$$
-
----
-
-## LQR Formulation
-
-### Objective Function
-Minimize expected cost:
-
-$$J = \mathbb{E}\left[\sum_{t=0}^{T} \left( \text{execution cost} + \text{risk penalty} \right) + \text{terminal cost}\right]$$
-
-### Key Result: Optimal Control is Affine
-
-The optimal participation rate is:
-
-$$u_t^* = k_t^T x_t + f_t$$
-
-Where:
-- $x_t = (p_t, q_t)^T$ is the state
-- $k_t$ are time-varying gains (computed iteratively backwards)
-- $f_t$ is a time-varying offset
-
-**This is computable before execution begins!**
-
----
-
-## "Aggressive in the Money" Behavior
-
-The strategy naturally accelerates when the price is favorable:
-
-- **When buying:** Increase participation when price is LOW (below reference)
-- **When selling:** Increase participation when price is HIGH (above reference)
-
-This emerges from the mean-reversion term in the dynamics:
-- If price is below $\bar{S}$, it's expected to rise → buy faster
-- If price is above $\bar{S}$, it's expected to fall → sell faster
-
-The **intensity** of this behavior is controlled by $\kappa$ (mean-reversion speed).
-
----
-
-## MPC Extension
-
-### Problem with Pure LQR
-LQR can produce negative participation rates (round-trip trades), which are often undesirable.
-
-### MPC Solution
-Use Model Predictive Control with constraints:
-
-1. Solve LQR over finite horizon
-2. Add constraint: $u_t \geq 0$ (no round trips)
-3. Implement only first control action
-4. Re-solve at next timestep
-
-### Advantages of MPC over Hard Constraints
-- Smoother than putting a hard floor on participation
-- More consistent with completion constraint
-- Natural handling of changing market conditions
-
----
-
-## Key Parameters
-
-| Parameter | Symbol | Description | Effect |
-|-----------|--------|-------------|--------|
-| Mean-reversion speed | $\kappa$ | How fast price reverts | Higher → more aggressive ITM |
-| Volatility | $\sigma$ | Price uncertainty | Higher → more cautious |
-| Risk aversion | $\lambda$ | Penalizes execution risk | Higher → faster execution |
-| Market impact | $\eta$ | Temporary price impact | Higher → slower execution |
-| Horizon | $T$ | Time to complete | Shorter → more urgent |
-
----
-
-## Application to Our System
-
-### How We'll Use This
-
-1. **For Delta Hedging:**
-   - State: $(p_t, \Delta_t)$ where $\Delta_t$ is portfolio delta
-   - Control: hedge quantity
-   - Objective: minimize hedging cost + delta exposure
-
-2. **Mean-Reversion Signal:**
-   - Use MHE to estimate $\kappa$ in real-time
-   - When $\kappa$ is high (strong mean-reversion): hedge less frequently
-   - When $\kappa$ is low (momentum): hedge more aggressively
-
-3. **Aggressive in the Money:**
-   - When SPY price is favorable for hedging (low when we need to buy), increase hedge size
-   - This naturally integrates market timing into hedging
-
-### Modifications for Our Context
-
-| Paper | Our System |
-|-------|------------|
-| Execution of fixed quantity | Continuous delta hedging |
-| Complete by time $T$ | No hard completion (ongoing) |
-| Single instrument | Multiple (SPY + options) |
-| Price mean-reversion | Extend to vol mean-reversion |
-
----
-
-## Mathematical Details
-
-### Riccati Equation for Gains
-
-The gain matrices $P_t$ are computed backwards:
-
-$$P_t = Q + A^T P_{t+1} A - A^T P_{t+1} B (R + B^T P_{t+1} B)^{-1} B^T P_{t+1} A$$
-
-Where:
-- $A$: State transition matrix
-- $B$: Control input matrix
-- $Q$: State cost matrix
-- $R$: Control cost matrix
-
-### Continuous-Time Limit
-
-In continuous time with further assumptions, closed-form solutions exist:
-
-$$u^*(t, p, q) = \alpha(t) + \beta(t) p + \gamma(t) q$$
-
-Where $\alpha, \beta, \gamma$ are functions of time and parameters.
-
----
-
-## Implementation Notes
-
-1. **do-mpc handles the MPC formulation** - we define dynamics, costs, constraints
-2. **CasADi provides automatic differentiation** - for the nonlinear extensions
-3. **IPOPT solves the resulting NLP** - or qpOASES for the QP case
-
-### Horizon Selection
-- Paper suggests horizon should cover expected duration of price excursion
-- For delta hedging: 10-20 steps at 1-minute frequency = 10-20 minutes
-- Can be tuned based on estimated $\kappa$
-
----
-
-## References from Paper
-
-- Almgren & Chriss (2001) - Original optimal execution framework
-- Gatheral & Schied (2011) - Aggressive in the money property
-- Bertsimas & Lo (1998) - Early optimal execution work
-- Bertsekas (1995) - LQR theory
-
----
-
-## Questions for Implementation
-
-1. How to estimate $\kappa$ in real-time? → MHE
-2. What reference price $\bar{S}$ to use? → EMA or VWAP
-3. How to extend to multi-dimensional (hedging multiple Greeks)?
-4. How to handle overnight positions?
-
+# Paper note: Clinet, Perreton, Reydellet (2021), "Optimal trading: a model predictive control approach"
+
+arXiv:2110.11008v2 (PDF in this folder). This replaces an earlier summary whose sections "Horizon Selection" and "κ high → hedge less" were not in the paper; they are removed.
+
+## What the paper is
+An **optimal-execution** paper: a parent order must be completed over a fixed horizon (a completion constraint), and the question is the participation schedule. The model is dimensionless — slippage relative to a benchmark price and the fraction of the order still to execute — with a linear-quadratic cost and a mean-reverting price signal. The signal's decay κδt is a **hand-tuned constant**, explicitly not estimated in the paper. The LQR solution can go negative (round trips), so the authors use **MPC**: at each step solve a certainty-equivalent QP over the *remaining* horizon with the positivity/completion constraints, apply the first action, re-solve next step. That receding-horizon-with-constraints pattern is the paper's contribution for this project.
+
+## What this project took from it
+- The **QP-per-step pattern**: a convex program over the remaining horizon, first action applied, re-solved next tick. `src/hedge.py::qp_half_width` is exactly that program's first action for the delta-hedging objective (risk λ·Σσ_k²S²dt·D_k² + asymmetric linear costs + overnight terminal weight, N = steps to the session close), which has a closed form because E[dS] = 0 makes the predicted exposure path flat. `tests/test_hedge.py::test_qp_closed_form_equals_program` keeps the full N-step program as a scipy oracle; no solver ships (ADR-004).
+- The **unit discipline**: dimensionless cost ratios (band `k` = $/share ÷ S), explicit dt per step, risk and cost in the same currency.
+
+## What this project did not take
+- No κ, no reference price S̄, no mean-reversion signal: a delta hedge has no completion constraint and no directional view; E[dS] = 0 is the assumption.
+- No "aggressive in the money" behaviour: that needs the signal.
+- No MHE / online parameter estimation: the only estimated quantity is realized variance (`src/vol.py`), and the gate uses it, not the hedger.
+- No horizon tuning: N is the number of ticks to the close, which leaves one free parameter (λ) per policy.
+
+## What the hedger actually rests on
+- **Whalley & Wilmott (1997)**, *An asymptotic analysis of an optimal hedging model for option pricing with transaction costs*, Mathematical Finance 7(3): the no-trade band H = ((3/2)·e^{−rT}·k·S·Γ²/γ)^{1/3} that `band_half_width` implements (H grows with Γ^{2/3}, shrinks with γ^{1/3}).
+- **Zakamouline (2006)**, *European option pricing and hedging with both fixed and proportional transaction costs*, JEDC 30: why a per-order minimum (IBKR's $0.35) widens the band; implemented as one fixed-point step that folds the minimum into `k` at the expected trade size.
+- **Derman & Kamal (1999)**, *When you cannot hedge continuously*, Risk 12(1): the discrete-hedging error std ≈ premium·√(π/4N), asserted by the Monte-Carlo oracle `derman_kamal` in `tests/test_backtest_sim.py`.
+- **Muravyev & Ni (2020)**, *Why do option returns change sign from day to night?*, JFE: overnight gap variance ∝ Δ², hence the hedge-to-centre rule in the last `loop.close_window_s` of the session.
