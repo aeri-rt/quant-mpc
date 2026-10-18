@@ -1,58 +1,14 @@
-# Backtest Configuration
-# ----------------------
-# Default parameters for the gamma scalping backtest engine.
-# Override any field via CLI or by editing this file.
-
-# Time range
-time:
-  start_date: "2025-12-01"
-  end_date: "2026-01-31"
-  bar_size_minutes: 5
-
-# Warmup (SimpleKappaEstimator needs ~60 bars before reliable MPC output)
-warmup:
-  warmup_bars: 60
-
-# Capital and position sizing
-capital:
-  initial_capital: 100000.0
-  position_size: 10          # Contracts per straddle leg
-  target_dte: 30             # Target DTE for new straddles
-
-# Position management
-positions:
-  roll_dte: 7                # Roll when DTE falls below
-  roll_to_dte: 30            # Roll into this DTE
-  take_profit_pct: 0.50
-  stop_loss_pct: -0.30
-
-# Volatility model
-volatility:
-  vix_scale_factor: 1.0      # Multiplier on VIX -> BS sigma
-  # Note: intraday IV is constant per day (uses daily VIX close).
-  # This is a known limitation -- finer IV would require intraday VIX or
-  # option-derived IV, which isn't available offline.
-
-# Market parameters
-market:
-  risk_free_rate: 0.045
-  dividend_yield: 0.0106
-
-# Transaction costs
-costs:
-  equity_slippage_bps: 1.0           # Basis points slippage on equity
-  equity_commission_per_share: 0.005
-  option_spread_dollars: 0.05        # Half bid-ask spread (ATM SPY)
-  option_commission_per_contract: 0.65
-
-# MPC overrides (match live config or tune separately)
-mpc:
-  mpc_horizon: 20
-  mpc_q_max: 1000.0
-  mpc_u_max: 200.0
-  mpc_w_delta: 10.0
-
-# Data paths
-paths:
-  cache_dir: "data/cache"
-  output_dir: "data/backtest_results"
+# Backtest configuration → src.config.Backtest (strategy/cost/risk settings come from live_config)
+live_config: config/live.yaml   # the strategy/cost/risk config the backtest validates
+start: 2025-01-02
+end: 2025-06-30
+bar_s: 60                       # bar size = Runner interval; asserted equal to live.loop.interval_s unless overridden via --interval
+source: synthetic               # synthetic | ibkr (cached bars from scripts/fetch_data.py); CLI --synthetic / --ibkr override
+hedger: all                     # band | qp | naive | all
+cache_dir: data/cache
+out_dir: data/backtest_results
+cache_version: 2                # bumps invalidate parquet caches (a poisoned fetch is never reused)
+skew_b: 1.0                     # DDKZ haircut σ_atm = σ_var/√(1+3Tb²); b=1 gives VIX/ATM = √(1+3·30/365) ≈ 1.1165 at 30 d (a calibration knob, not a measured skew slope; never assert the rounded 1.12)
+initial_nlv: 100000
+synthetic: {sigma: 0.16, seed: 42, S0: 600.0, iv: 0.15}   # iv: implied level of the synthetic term structure (each node = iv·√(1+3·T·skew_b²), so atm_iv == iv at 9/30/91 d; between nodes it drifts < 0.4 vol-pt over 7–35 DTE, so sigma_iv ≠ iv in the daily CSV is expected; skew_b: 0 makes it exactly flat)
+sweep_risk_aversion: {band: [1.0e-3, 3.0e-4, 1.0e-4, 3.0e-5, 1.0e-5], qp: [3.0e-5, 1.0e-5, 3.0e-6, 1.0e-6, 3.0e-7]}

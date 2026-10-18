@@ -1,0 +1,95 @@
+# Live / paper / dry-run configuration → src.config.Live
+# Every section and key is listed; unknown keys fail validation. Values start at the model defaults
+# (except ex_dividend_dates: model default none) and are tuned here per the runbook.
+
+broker:
+  host: 127.0.0.1            # TWS/Gateway host
+  port: 7497                 # 7497 paper TWS, 7496 live TWS, 4002/4001 Gateway
+  client_id: 10              # set this id as TWS "Master Client ID" so prior-session orders are visible (runbook)
+  market_data_type: 3        # 1 live, 3 delayed; always requested; execute refuses to hedge unless the SPY ticker reports 1
+  timeout_s: 10
+  account: ""                # "" = first account
+
+instrument:
+  symbol: SPY
+  risk_free_rate: 0.04
+  dividend_yield: 0.0099     # continuous; the ex-date (≈ 2026-12-18, ~$1.9) is handled only by the no-entry rule below: no warning, payment-in-lieu not booked
+  ex_dividend_dates: ["2026-12-18"]   # no entry the session before an ex-date
+
+position:
+  contracts: null            # null = size from the account: floor(risk.max_premium_frac_nlv·NLV / premium); int = at most this many (still capped by max_contracts and floor(risk.max_premium_frac_nlv·NLV / premium)); CLI --contracts overrides
+  max_contracts: 10
+  entry_dte: 30              # target DTE; prefer the monthly (3rd Friday) within ±5 days
+  prefer_monthly: true
+  roll_dte: 7                # at DTE ≤ roll_dte: roll (gate OPEN) or exit (CLOSED)
+  hard_exit_dte: 1           # unconditional exit (auto-exercise guard)
+  max_loss_frac_premium: 0.5 # exit when book P&L since entry ≤ −0.5·premium_paid
+
+loop:
+  interval_s: 60             # tick period; also the hedging dt
+  reconcile_s: 300
+  close_window_s: 300        # hedge-to-centre once when seconds_to_close ≤ this (order sent before 16:00, outsideRth False)
+  stale_quote_s: 15          # quote older than this (age = now − the ticker's arrival stamp on this host; no clock offset is added) → no decisions this tick, DEGRADED
+  stale_halt_s: 600          # stale this long → HALT
+  fill_timeout_s: 20         # working share order older than this → cancel (then re-decide next tick)
+  straddle_timeout_s: 30
+  no_entry_last_s: 1800      # no straddle entry in the last 30 min
+  warmup_sessions: 30        # 1-min MIDPOINT history fetched at start (one paced request per session, ≈0.6 s apart; not cached); live warms 30 sessions, so the gate runs EWMA (log-HAR needs vol.har_min_sessions = 60 continuous sessions); the backtest warms 60 and uses log-HAR
+  warmup_max_s: 120          # wall-clock cap on the warm-up; proceed with what exists
+
+greeks:
+  source: bs                 # bs | ibkr (ibkr: delta/gamma from tick-106 modelGreeks with Γ·dS carry-forward; BS fallback when stale)
+  max_age_s: 120
+  ibkr_vega_per_volpt: null  # null = unverified → BS vega; true = IBKR vega already $/vol-pt; false = per unit vol → /100. Set from scripts/check_ibkr.py
+  ibkr_theta_per_day: null   # null = unverified → BS theta; true = $/day; false = per year → /365
+
+vol:
+  ewma_lambda: 0.94
+  har_min_sessions: 60       # log-HAR used at/after this many sessions of daily RV, EWMA before
+  profile_sessions: 60
+  overnight_frac: 0.33       # share of daily variance assumed overnight (QP terminal weight, synthetic bars)
+
+gate:
+  eval_time: "10:00"         # NY; evaluated once per session at/after this time and at roll time
+  min_edge_usd_per_day: 10.0 # entry threshold on edge_per_day
+  min_vol_margin: 0.01       # σ_f − σ_iv ≥ 1 vol point to enter
+  exit_edge_usd_per_day: -25.0
+  exit_confirm_sessions: 2
+  reentry_cooldown_sessions: 2
+  holding_sessions: 16       # option round-trip amortisation horizon: XNYS sessions from entry (30 DTE) to roll (7 DTE) = 23 calendar days × 252/365
+  turnover_frac: 2.0         # realised band hedge turnover ÷ Γ·S·σ·√(2/π·252); backtest-measured (5-min synthetic bars, seeds 1–7: 1.6–2.4) — > 1 because H ≈ 60 sh < the daily ΔΔ std ≈ 90 sh, plus the close-window hedge
+
+hedge:
+  policy: band               # band | qp | naive
+  inner_fraction: 0.5        # band: trade to sign(Δ)·f·H; 0 = centre, 1 = edge
+  band_min_shares: 5
+  band_max_shares: 300
+  max_trade_shares: 300
+  band_risk_aversion: 1.0e-4   # γ in 1/$  (H ∝ γ^{-1/3}); 5 straddles/30 DTE/S=600 → H ≈ 48 shares after the min-commission fixed point
+  qp_risk_aversion: 3.0e-6     # λ in 1/$ (H = c/(2λS²W_var), N = steps to close) → ≈ 33 shares at the open, ≈ 90 at 15:00; separate axis from γ (two floats, no sub-model)
+
+costs:
+  commission_per_share: 0.0035   # IBKR Pro Tiered (select Tiered in account settings)
+  min_commission: 0.35
+  half_spread: 0.005             # SPY typical
+  sec_fee_rate: 2.06e-5          # Section 31, sells only; VERIFY from commissionReport (scripts/calibrate_costs.py); schedule changes
+  finra_taf_per_share: 0.0       # $0 through 2026-12-31; $0.000195/share sold from 2027-01-01 (cap below)
+  finra_taf_cap: 9.79
+  option_commission: 0.65
+  option_min_commission: 1.0
+  option_fees_per_contract: 0.05
+  option_half_spread_by_dte: [[5, 0.015], [14, 0.04], [45, 0.06], [90, 0.07]]   # measured SPY ATM
+
+risk:
+  max_premium_frac_nlv: 0.15     # 5 straddles at 30 DTE ≈ $10k premium at 15% IV (≈ $14k at 20%) ⇒ NLV ≈ $70–95k
+  max_margin_frac_excess: 0.5    # whatIf initMarginChange ≤ 0.5·ExcessLiquidity
+  max_daily_loss_frac_nlv: 0.02
+  loss_persist_ticks: 3          # breach must persist this many consecutive ticks
+  open_grace_s: 300              # no loss-halt before 09:35 (pre-open marks)
+  max_net_delta_shares: 150      # book bound: |shares+u| ≤ contracts·100 + this (exposure-increasing trades only)
+  max_share_drift: 50            # reconcile adopts ≤ this, halts above
+  max_rejects_per_10min: 3
+  min_nlv: 25000                 # PDT guard; also reads DayTradesRemaining
+
+store: {path: data/trades.db}
+log:   {dir: logs, level: INFO}
