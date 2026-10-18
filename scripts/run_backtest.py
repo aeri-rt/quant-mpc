@@ -1,122 +1,106 @@
-#!/usr/bin/env python3
-"""
-Run a backtest of the gamma scalping strategy.
+"""Replay SPY bars through the shared Runner per hedger; print summary, attribution, comparison (and --sweep frontier) tables; write PNGs + CSVs.
 
-Usage:
-    # With default config and synthetic data
-    python scripts/run_backtest.py --synthetic
-
-    # With custom config
-    python scripts/run_backtest.py --config config/backtest.yaml --synthetic
-
-    # With cached real data (fetch first with scripts/fetch_backtest_data.py)
-    python scripts/run_backtest.py --config config/backtest.yaml
-
-    # Override date range
-    python scripts/run_backtest.py --synthetic --start 2025-12-01 --end 2026-01-15
+usage: run_backtest.py [--config config/backtest.yaml] [--synthetic | --ibkr]
+                       [--hedger band|qp|naive|all]
+                       [--start YYYY-MM-DD] [--end YYYY-MM-DD] [--sweep] [--force-open]
+                       [--out DIR] [--interval S]
 """
 
 import argparse
+import asyncio
 import sys
+import time
+from datetime import date, timedelta
 from pathlib import Path
 
-# Add project root to path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.utils.logging import get_logger
+from backtest import report
+from backtest.data import load_bars, load_term_structure, synthetic_term_structure
+from src.clock import XNYS
+from src.config import Backtest, Live, load_backtest
+from src.log import setup
 
-logger = get_logger("backtest")
-
-from backtest.config import BacktestConfig
-from backtest.data_fetcher import (
-    fetch_vix,
-    generate_synthetic_bars,
-    generate_synthetic_vix,
-)
-from backtest.engine import BacktestEngine
-from backtest.report import BacktestReport
+HEDGERS = ("band", "qp", "naive")
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Run gamma scalping backtest")
-    parser.add_argument(
-        "--config", type=str, default=None,
-        help="Path to backtest YAML config",
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    p.add_argument("--config", default="config/backtest.yaml")
+    src = p.add_mutually_exclusive_group()
+    src.add_argument("--synthetic", action="store_true", help="force source: synthetic")
+    src.add_argument("--ibkr", action="store_true", help="force source: ibkr (cached bars)")
+    p.add_argument("--hedger", choices=[*HEDGERS, "all"], help="override backtest.hedger")
+    p.add_argument("--start", type=date.fromisoformat, help="override backtest.start")
+    p.add_argument("--end", type=date.fromisoformat, help="override backtest.end")
+    p.add_argument("--sweep", action="store_true", help="also sweep risk aversion for band and qp")
+    p.add_argument("--force-open", action="store_true", help="bypass the alpha gate (hold always)")
+    p.add_argument("--out", help="override backtest.out_dir")
+    p.add_argument(
+        "--interval", type=int, help="bar size in seconds; overrides bar_s AND loop.interval_s"
     )
-    parser.add_argument("--start", type=str, default=None, help="Start date (YYYY-MM-DD)")
-    parser.add_argument("--end", type=str, default=None, help="End date (YYYY-MM-DD)")
-    parser.add_argument(
-        "--synthetic", action="store_true",
-        help="Use synthetic data (no TWS or yfinance required)",
-    )
-    parser.add_argument(
-        "--no-plots", action="store_true",
-        help="Skip plot generation",
-    )
-    args = parser.parse_args()
+    return p.parse_args(argv)
 
-    # -- Load config ---------------------------------------------------
-    if args.config:
-        cfg = BacktestConfig.from_yaml(args.config)
+
+def load(a: argparse.Namespace) -> tuple[Backtest, Live]:
+    bt, live = load_backtest(a.config)
+    over = {"start": a.start, "end": a.end, "hedger": a.hedger, "out_dir": a.out}
+    upd = {k: v for k, v in over.items() if v is not None}
+    if a.synthetic or a.ibkr:
+        upd["source"] = "synthetic" if a.synthetic else "ibkr"
+    if a.interval:
+        upd["bar_s"] = a.interval
+        loop = live.loop.model_copy(update={"interval_s": float(a.interval)})
+        live = live.model_copy(update={"loop": loop})
+    bt = bt.model_copy(update=upd)
+    if bt.bar_s != live.loop.interval_s:
+        sys.exit(f"bar_s {bt.bar_s} != loop.interval_s {live.loop.interval_s}: use --interval")
+    return bt, live
+
+
+async def main(argv: list[str] | None = None) -> int:
+    t0 = time.monotonic()
+    a = parse_args(argv)
+    bt, live = load(a)
+    setup(None, "WARNING")  # tables are the output; no JSONL audit trail for a replay
+    from backtest.sim import run  # pulls in the Runner; keeps --help/parse_args import-light
+
+    try:
+        bars = load_bars(bt, live)
+    except ValueError as e:  # ibkr source with nothing cached: carries the fetch_data.py hint
+        sys.exit(str(e))
+    if bt.source == "synthetic":
+        sessions = XNYS.sessions_in_range(bt.start - timedelta(days=7), bt.end)  # ≥1 prior row
+        term = synthetic_term_structure(sessions, bt.synthetic.iv, bt.skew_b)
     else:
-        cfg = BacktestConfig()
+        term = load_term_structure(Path(bt.cache_dir), bt.cache_version)
 
-    if args.start:
-        cfg.start_date = args.start
-    if args.end:
-        cfg.end_date = args.end
+    hedgers = HEDGERS if bt.hedger == "all" else (bt.hedger,)
+    results = {}
+    for h in hedgers:
+        results[h] = await run(bars, term, live, bt, h, force_open=a.force_open)
+    first = next(iter(results.values()))
+    print(report.summary_table(results, live.gate.turnover_frac))
+    print(f"\nattribution ({first.hedger}, last 10 sessions)")
+    print(report.attribution_table(first, last_n=10))
+    print("\ncomparison")
+    print(report.comparison_table(results))
+    if a.sweep:
+        sweep = {}
+        for policy in ("band", "qp"):
+            sweep[policy] = [
+                await run(bars, term, live, bt, policy, risk_aversion=ra, force_open=a.force_open)
+                for ra in getattr(bt.sweep_risk_aversion, policy)
+            ]
+        print("\nfrontier")
+        print(report.frontier_table(sweep))
 
-    cfg.ensure_dirs()
-
-    # -- Load data -----------------------------------------------------
-    if args.synthetic:
-        logger.info("Using synthetic data")
-        bars = generate_synthetic_bars(
-            cfg.start_date, cfg.end_date,
-            cfg.bar_size_minutes,
-            cache_dir=cfg.cache_dir,
-        )
-        vix = generate_synthetic_vix(
-            cfg.start_date, cfg.end_date,
-            cache_dir=cfg.cache_dir,
-        )
-    else:
-        # Try loading cached parquet files
-        import pandas as pd
-
-        bars_path = Path(cfg.cache_dir) / f"spy_bars_{cfg.bar_size_minutes}m_{cfg.start_date}_{cfg.end_date}.parquet"
-        vix_path = Path(cfg.cache_dir) / f"vix_{cfg.start_date}_{cfg.end_date}.parquet"
-
-        if not bars_path.exists():
-            logger.error(
-                f"SPY bars not found at {bars_path}. "
-                "Run scripts/fetch_backtest_data.py first, or use --synthetic."
-            )
-            sys.exit(1)
-
-        if not vix_path.exists():
-            logger.warning(f"VIX data not found at {vix_path}, trying yfinance...")
-            vix = fetch_vix(cfg.start_date, cfg.end_date, cfg.cache_dir)
-        else:
-            vix = pd.read_parquet(vix_path)
-
-        bars = pd.read_parquet(bars_path)
-
-    logger.info(f"Data loaded: {len(bars)} bars, {len(vix)} VIX rows")
-
-    # -- Run backtest --------------------------------------------------
-    engine = BacktestEngine(cfg)
-    result = engine.run(bars, vix)
-
-    # -- Report --------------------------------------------------------
-    report = BacktestReport(result)
-    report.print_summary()
-
-    if not args.no_plots:
-        report.generate_plots()
-
-    logger.info("Backtest complete.")
+    out = Path(bt.out_dir)
+    for p in report.plots(results, out) + report.write_csvs(results, out):
+        print(p)
+    print(f"elapsed {time.monotonic() - t0:.1f} s")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(asyncio.run(main()))
